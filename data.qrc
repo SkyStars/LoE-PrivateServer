@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>data/login.bin</file>
+    </qresource>
+</RCC>

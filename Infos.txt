@@ -1,0 +1,899 @@
+La version du leak est 1142, celle en dev est 1344
+Le serveur est loedata.legendsofequestria.com (82.147.19.83)
+On dirait que quand on lui envoie login.bin (donc avec authresponse=true) il attend quelque chose d'autre, il se bloque en attente
+=> Need a way to force the game to accept auth but let it connect to the server after it,maybe spam replies to answer before the real server does
+Le .exe c'est le moteur du jeu, c'est Unity, y'as rien d'interessant dedans.
+Les trucs cools sont dans LoE_Data, les ressource directement dedans
+Le vrai code est probablement dans managed : "LegendsOfEquestria.Data.dll", et "System.Core.dll"
+Le code du jeu est dans Assembly-CSharp.dll, voir TwilightSparkle->WebAuth->MoveNext pour le login code
+=> Au login si authenticated=true et que la taille de la reponse >5, il attend une liste de serveurs
+=> Le code utilise response_5, un tableau de string avec une ligne par case
+=> response_5 c'est le tableau des lignes de la reponse HTTP (apres la taille de la reponse). 
+=> Donc pour loginVersionFail, response_5[0]="versionresponse:" et response_5[1]="1344"
+
+Dump wireshark a la connection, avec version du leak :
+### Client :
+POST /login.php HTTP/1.1
+User-Agent: UnityPlayer/3.5.3f3 (http://unity3d.com)
+Host: loedata.legendsofequestria.com
+Accept: */*
+Content-Length: 95
+Content-Type: application/x-www-form-urlencoded
+commfunction=login&username=tux3&passhash=efc8ed71e9d9f3039f06d43133ded18579dd31d5&version=1142
+### Serveur :
+HTTP/1.1 200 OK
+Server: nginx
+Date: Fri, 21 Jun 2013 19:54:32 GMT
+Content-Type: text/html
+Transfer-Encoding: chunked
+Connection: keep-alive
+X-Powered-By: PHP/5.3.25
+Vary: Accept-Encoding,User-Agent
+15
+versionresponse:
+1344
+0
+
+=> Pour login reussi il faut response_5 comme ça (les ###TRUC###, c'est a remplacer par une valeur correcte)
+[0]:string		authresponse:
+[1]:string		true
+[2]:string		###SESSIONKEY###
+[3]:int			###GACCESS###
+[4-X]:string	###SERVNAME###;###SERVLOCATION###;###SERVPORT###
+
+=> Le dossier des donnees du jeu est : C:/Users/Tux/AppData/LocalLow/LoE/Legends of Equestria/
+=> Make sure the encoding of the XML files is OK (its written at the top (should be UTF16))
+=> The leaked game can't read XML files with elements inside elements, that's why Recipes.xml bugs
+==> Replace the reagents by <Reagents></Reagents> to make it work on the leak
+
+=> Now we need to answer the UDP connect. Check Lidgren and https://github.com/jbruening/PNet, it's the library used for UDP communication.
+==> See in NetworkMenu->AwakeAfterAuthentifiation
+==> The game uses PNet and PNet uses Lidgren, in the end Lidgren does all the work (including the UDP 'handshake')
+==> When a connection request is received, you can call Approve() or Deny() to finish the handshake !
+==> TODO: Copy the handshake code, complete with the NetworkTime thing
+
+8300000801 04504e6574 3a7a4f815c8c4ee6 9cf35b43 04 74757833 0a 53455353494f4e4b4559
+
+Plaintext (dots is unprintable char) :
+......PNet.......Wf..D.tux3.SESSIONKEY
+
+=> The 5 first bytes are the Header
+=> The 5 next are the AppId
+=> The 8 next are the UniqueId
+=> The 4 next are the timestamp
+=> Connect reply is connect without the LocalHail and with id 0x84, thus 22 bytes long
+
+8300000801							Header
+04504e6574 							AppId
+3a7a4f815c8c4ee6					UniqueId
+9cf35b43							Timestamp
+04747578330a53455353494f4e4b4559	Message(LocalHail)
+
+=> The first byte is probably not part of the AppId but rather the type of message
+==> Message types :
+Connect = 0x83,
+ConnectResponse = 0x84,
+ConnectionEstablished = 0x85,
+Acknowledge = 0x86,
+Disconnect = 0x87,
+Discovery = 0x88,
+DiscoveryResponse = 0x89,
+ExpandMTURequest = 8C,
+ExpandMTUSuccess = 0x8d,
+LibraryError = 0x80,
+NatIntroduction = 0x8b,
+NatPunchMessage = 0x8a,
+Ping = 0x81,
+Pong = 0x82,
+Unconnected = 0,
+UserReliableOrdered1 = 0x43,
+UserReliableOrdered10 = 0x4c,
+UserReliableOrdered11 = 0x4d,
+UserReliableOrdered12 = 0x4e,
+UserReliableOrdered13 = 0x4f,
+UserReliableOrdered14 = 80,
+UserReliableOrdered15 = 0x51,
+UserReliableOrdered16 = 0x52,
+UserReliableOrdered17 = 0x53,
+UserReliableOrdered18 = 0x54,
+UserReliableOrdered19 = 0x55,
+UserReliableOrdered2 = 0x44,
+UserReliableOrdered20 = 0x56,
+UserReliableOrdered21 = 0x57,
+UserReliableOrdered22 = 0x58,
+UserReliableOrdered23 = 0x59,
+UserReliableOrdered24 = 90,
+UserReliableOrdered25 = 0x5b,
+UserReliableOrdered26 = 0x5c,
+UserReliableOrdered27 = 0x5d,
+UserReliableOrdered28 = 0x5e,
+UserReliableOrdered29 = 0x5f,
+UserReliableOrdered3 = 0x45,
+UserReliableOrdered30 = 0x60,
+UserReliableOrdered31 = 0x61,
+UserReliableOrdered32 = 0x62,
+UserReliableOrdered4 = 70,
+UserReliableOrdered5 = 0x47,
+UserReliableOrdered6 = 0x48,
+UserReliableOrdered7 = 0x49,
+UserReliableOrdered8 = 0x4a,
+UserReliableOrdered9 = 0x4b,
+UserReliableSequenced1 = 0x23,
+UserReliableSequenced10 = 0x2c,
+UserReliableSequenced11 = 0x2d,
+UserReliableSequenced12 = 0x2e,
+UserReliableSequenced13 = 0x2f,
+UserReliableSequenced14 = 0x30,
+UserReliableSequenced15 = 0x31,
+UserReliableSequenced16 = 50,
+UserReliableSequenced17 = 0x33,
+UserReliableSequenced18 = 0x34,
+UserReliableSequenced19 = 0x35,
+UserReliableSequenced2 = 0x24,
+UserReliableSequenced20 = 0x36,
+UserReliableSequenced21 = 0x37,
+UserReliableSequenced22 = 0x38,
+UserReliableSequenced23 = 0x39,
+UserReliableSequenced24 = 0x3a,
+UserReliableSequenced25 = 0x3b,
+UserReliableSequenced26 = 60,
+UserReliableSequenced27 = 0x3d,
+UserReliableSequenced28 = 0x3e,
+UserReliableSequenced29 = 0x3f,
+UserReliableSequenced3 = 0x25,
+UserReliableSequenced30 = 0x40,
+UserReliableSequenced31 = 0x41,
+UserReliableSequenced32 = 0x42,
+UserReliableSequenced4 = 0x26,
+UserReliableSequenced5 = 0x27,
+UserReliableSequenced6 = 40,
+UserReliableSequenced7 = 0x29,
+UserReliableSequenced8 = 0x2a,
+UserReliableSequenced9 = 0x2b,
+UserReliableUnordered = 0x22,
+UserSequenced1 = 2,
+UserSequenced10 = 11,
+UserSequenced11 = 12,
+UserSequenced12 = 13,
+UserSequenced13 = 14,
+UserSequenced14 = 15,
+UserSequenced15 = 0x10,
+UserSequenced16 = 0x11,
+UserSequenced17 = 0x12,
+UserSequenced18 = 0x13,
+UserSequenced19 = 20,
+UserSequenced2 = 3,
+UserSequenced20 = 0x15,
+UserSequenced21 = 0x16,
+UserSequenced22 = 0x17,
+UserSequenced23 = 0x18,
+UserSequenced24 = 0x19,
+UserSequenced25 = 0x1a,
+UserSequenced26 = 0x1b,
+UserSequenced27 = 0x1c,
+UserSequenced28 = 0x1d,
+UserSequenced29 = 30,
+UserSequenced3 = 4,
+UserSequenced30 = 0x1f,
+UserSequenced31 = 0x20,
+UserSequenced32 = 0x21,
+UserSequenced4 = 5,
+UserSequenced5 = 6,
+UserSequenced6 = 7,
+UserSequenced7 = 8,
+UserSequenced8 = 9,
+UserSequenced9 = 10,
+UserUnreliable = 1
+
+
+=> See Lidgren->NetConnection->ReceiveHandshake
+
+=> Atm you just need to get the UDP handshake right
+==> Take two games on different computers but same network
+==> Each game connect to the other one with the server list
+==> They should at least complete the handshake before the weird but-this-aint-a-server! stuff happens
+==> Wireshark on the other computer's ip
+===> It's not working on Marie's computer
+
+=> Make sure the UDP reply is really sent. I never saw it on Wireshark when testing LAN game-to-game connection.
+
+=> Run a Lidgren demo ! Then wireshark through the handshake !
+==> In the downladed lidgren lib there are samples
+
+=> Pour se connecter ca fait (aves les size comme example) 0x83 (size 47) - 0x84 (size 22) - 0x85 (size 9)
+=> Ensuite il y a des Ping 0x81 et Pong 0x82 de temps en temps
+=> Et pour envoyer un message une fois qu'on est connecté c'est 0x43 et on recoit un acknoledge 0x86
+
+=> Packet Header :
+8 bit 		NetMessageType
+1 bit		Fragment?
+15 bits		Sequence number
+16 bits		Payload length in bits
+
+=> Fragment et Sequence number sont toujours à 0 pour le handshake et le ping
+
+=> Now it connects and then timeouts, the server is supposed to send something, maybe the RPC stuff in NetworkMenu
+
+=> case msg.readByte == 5, activate onRoomChange with a readString, wich is check in NetworkMenu.Awake wich activates loadLevel !
+
+char peer0_0[] = {
+0x81, 0x00, 0x00, 0x08, 0x00, 0x03 };
+char peer1_0[] = {
+0x82, 0x00, 0x00, 0x28, 0x00, 0x03, 0x4f, 0x1e, 
+0x72, 0x42 };
+char peer1_1[] = {
+0x81, 0x00, 0x00, 0x08, 0x00, 0x03 };
+char peer0_1[] = {
+0x82, 0x00, 0x00, 0x28, 0x00, 0x03, 0xe0, 0x68, 
+0xe7, 0x44 };
+
+char peer0_45[] = {
+0x43, 0x00, 0x00, 0x40, 0x00, 0x07, 0x54, 0x65, 
+0x73, 0x74, 0x4d, 0x73, 0x67 };
+char peer1_35[] = {
+0x86, 0x00, 0x00, 0x18, 0x00, 0x43, 0x00, 0x00 };
+
+char peer0_48[] = {
+0x43, 0x02, 0x00, 0x48, 0x00, 0x08, 0x54, 0x65, 
+0x73, 0x74, 0x4d, 0x73, 0x67, 0x32 };
+char peer1_38[] = {
+0x86, 0x00, 0x00, 0x18, 0x00, 0x43, 0x01, 0x00 };
+
+char peer0_51[] = {
+0x43, 0x04, 0x00, 0x48, 0x00, 0x08, 0x54, 0x65, 
+0x73, 0x74, 0x4d, 0x73, 0x67, 0x33 };
+char peer1_41[] = {
+0x86, 0x00, 0x00, 0x18, 0x00, 0x43, 0x02, 0x00 };
+
+86 00 00 18 00 
+00 00 00 43 00 00
+
+=> The connection times out probably because we don't reply to the pings nor acknoledge the messages !
+=> Au lieu de supprimer tout le message quand on le traite, supprimer seulement ce message en lisant sa taille dans le header (faire fromRawData(data()+taille)
+
+=> Now the game is on standby and never times out. But we need to send something. (probably a LoadLevel command or something)
+
+=> Le jeu utilise des 'RPC' pour communiquer, c'est surement avec ça qu'on doit lui demander de charger un niveau
+
+=> If you force the LoadLevel you get this message tons of times :
+480000080006
+It's a 0x48, communication on UserReliableOrdered6 !
+
+public enum NetIncomingMessageType
+{
+    ConnectionApproval = 4,
+    ConnectionLatencyUpdated = 0x1000,
+    Data = 8,
+    DebugMessage = 0x100,
+    DiscoveryRequest = 0x20,
+    DiscoveryResponse = 0x40,
+    Error = 0,
+    ErrorMessage = 0x400,
+    NatIntroductionSuccess = 0x800,
+    Receipt = 0x10,
+    StatusChanged = 1,
+    UnconnectedData = 2,
+    VerboseDebugMessage = 0x80,
+    WarningMessage = 0x200
+}
+
+?>The main loop of Lidgren is heartbeat
+
+PnetU
+=>Message reception :
+Net.Update -> if NetIncomingMessageType = Data (8) goto
+Net.Consume -> if SequenceChannel = 5 goto
+Net.ProcessUtils -> if readByte = 5 goto
+OnRoomChange readString
+
+=> At startup the server is probably supposed to send the player info (charatcer type, game save, ...)
+=> IIRC at login there is a player select/create screen.
+?=> There is probably a different channel for this, ProcessUtils doesn't seem to manage this kind of stuff, but more like ingame object/scene managment
+
+?> So, all data message are processed in Net.Consume, find what each channel does !
+?=> 5		PNetU.Net.ProcessUtils
+?=> 3		Assembly-CSharp.NetworkMenu.ProcessRCP
+
+In ProcessRPC there are calls to CharacterCreator !!
+See num3=1 and num3=0x7f
+
+=> A RPC is a call to a function through the network, it could be on a different computer.
+
+==>Remote Procedure Calls
+Remote Procedure Calls (RPCs) are used to invoke functions on other computers across the network, although the "network" can also mean the message channel between the client and server when they are both running on the same computer. Clients can send RPCs to the server, and the server can send RPCs to one or more clients. Most commonly, they are used for actions that happen infrequently. For example, if a client flips a switch to open a door, it can send an RPC to the server telling it that the door has been opened. The server can then send another RPC to all clients, invoking their local functions to open that same door. They are used for managing and executing individual events.
+
+==>State Synchronization
+State Synchronization is used to share data that is constantly changing. The best example of this would be a player's position in an action game. The player is always moving, running around, jumping, etc. All the other players on the network, even the ones that are not controlling this player locally, need to know where he is and what he is doing. By constantly relaying data about this player's position, the game can accurately represent that position to the other players.
+This kind of data is regularly and frequently sent across the network. Since this data is time-sensitive, and it requires time to travel across the network from one machine to another, it is important to reduce the amount of data that is sent as far as possible. In simpler terms, state synchronization naturally requires a lot of bandwidth, so you should aim to use as little bandwidth as possible. 
+
+==>Network Views
+Network Views are the main component involved in sharing data across the network. They allow two kinds of network communication: State Synchronization and Remote Procedure Calls.
+Network Views keep watch on particular objects to detect changes. These changes are then shared to the other clients on the network to ensure the change of state is noted by all of them. This concept is known as state synchronization and you can read about it further on the State Synchronization page.
+There are some situations where you would not want the overhead of synchronizing state between clients, for example, when sending out the position of a new object or respawned player. Since events like this are infrequent, it does not make sense to synchronize the state of the involved objects. Instead, you can use a remote procedure call to tell the clients or server to perform operations like this. More information about Remote Procedure Calls can be found on the RPC manual page. 
+
+=> See the disassembled code and search where the important functions are called
+
+=> Look at the other DLLs ! See in LoE.shared :
+
+public class StaticRPCIDs
+{
+    // Fields
+    public const byte Announce = 0xc9;
+    public const byte BeginDialog = 11;
+    public const byte ChatMessage = 15;
+    public const byte Delete = 0xcd;
+    public const byte EndDialog = 13;
+    public const byte EnteredTrigger = 10;
+    public const byte Error = 0x7f;
+    public const byte GetPonies = 1;
+    public const byte Kick = 200;
+    public const byte Mute = 0xcc;
+    public const byte RemovePony = 2;
+    public const byte Rename = 0xcb;
+    public const byte ServerInvoke = 0xff;
+    public const byte SetDialogMessage = 0x11;
+    public const byte SetDialogOptions = 12;
+    public const byte SetQuests = 14;
+    public const byte Tele = 0xce;
+    public const byte Whois = 0xca;
+}
+
+=> The code of the wordfilter is in LoE.shared
+
+=> Le Consume active des onDeserializeStream dans des NetworkViews inconnues, recherche onDeserializeStream pour trouver les fonctions qui utilisent cette valeur
+=> Voir aussi les CallRPC, rechercher les fonctions qui demandent un NetIncomingMessage
+
+=> DO IT, cherche les CallRPC avec Visual, toute les fonctions qui s'en serve recoivent des données du reseau, le code du PonyCreator or whatever doit etre dedans
+
+=> Try to remove most of the modified code is possible. You shouldn't have to make a LoadStatic
+
+=> C'est peut-etre un LoadLevel ! Genre le serveur fait LoadLevel (CharacterSelect)
+==> Trouver la liste de tout les levels
+
+===> Scenes, from "mainData" :
+MainMenu.unity
+Characters.unity
+PonyVille/PonyVille.unity
+SugarCubeCorner/SugarCubeCorner.unity
+Gem Mines/GemMines.unity
+Appaloosa/Appaloosa.unity
+SweetAppleAcres/SweetAppleAcres.unity
+Everfree/Everfree1.unity
+Everfree/Zecoras.unity
+Everfree/Everfree3.unity
+Tartarus/Tartarus.unity
+Canterlot/Canterlot.unity
+Minigames/minigameLoader.unity
+Minigames/PonyMuncher/PM-Lvl1.unity
+Ponyville Library/1stFloor/Ponyville Library 1st floor.unity
+Ponyville Library/2ndFloor/Ponyville Library 2nd floor.unity
+
+====> OMIGOSH C'EST CA ! C'EST UNE SCENE !
+=========> AU DEMARRAGE CHARGER AUTOMATIQUEMENT "characters" POUR L'ECRAN DE SELECTION DE PERSONNAGE !!!
+
+=> TODO: Implement ressource extraction of XML files
+=> Le serveur envoie ce messgae des qu'on charge la scene characters :
+48 00 00 08 00 06
+=> Sans le header c'est juste le byte 0x06. C'est surement un requete pour recuperer la liste de personnages !!!!
+=> Dans characterCreator.cs rechercher Loading Pony Characters, le netcode doit etre pas loin
+==> Il attent peut-etre la requete ponies, on peut l'envoyer vide, ca marche
+
+=> When creating a character and hitting play the game tries to save the character, it send character data (for example SunButt) :
+460000b00101ffffffff0753756e427574740302170000000600000000000000ffcdfd80ffedffffe849d1ff80ff8000000100000000000000803f
+==> If you send back the empty ponies list, it just cancels the save and goes back to the editor.
+===> It probably expects you to send back a correct ponies table
+====> The the serialization/deserialization classes or just find a way to do it manually it shouldn't be that hard
+
+public class PonyData : INetSerializable
+	public Color32 bodyColor;
+	public float BodySize;
+	public CutieMark[] CutieMarks;
+	public short Eye;
+	public Color32 eyeColor;
+	public Gender gender;
+	public Color32 hairColor0;
+	public Color32 hairColor1;
+	public short Hoof;
+	public Color32 hoofColor;
+	public short Mane;
+	public string name;
+	public LoE.Shared.CharacterType race = LoE.Shared.CharacterType.EarthPony;
+	public List<Stat> stats = new List<Stat>();
+	public short Tail;
+
+public void OnSerialize(NetOutgoingMessage msg)
+{
+	msg.Write(this.name);
+	msg.Write((byte) this.race);
+	msg.Write((byte) this.gender);
+	msg.Write(this.CutieMarks[0].ID);
+	msg.Write(this.CutieMarks[1].ID);
+	msg.Write(this.CutieMarks[2].ID);
+	msg.Write(this.hairColor0.RGBBytes());
+	msg.Write(this.hairColor1.RGBBytes());
+	msg.Write(this.bodyColor.RGBBytes());
+	msg.Write(this.eyeColor.RGBBytes());
+	msg.Write(this.hoofColor.RGBBytes());
+	msg.Write(this.Mane);
+	msg.Write(this.Tail);
+	msg.Write(this.Eye);
+	msg.Write(this.Hoof);
+	msg.Write(this.BodySize);
+}
+	
+public void OnDeserialize(NetIncomingMessage msg)
+{
+	this.name = msg.ReadString();
+	this.race = (LoE.Shared.CharacterType) msg.ReadByte();
+	this.gender = (Gender) msg.ReadByte();
+	this.CutieMarks = (from id in new int[] { msg.ReadInt32(), msg.ReadInt32(), msg.ReadInt32() } select StaticData.CutieMarks[id]).ToArray<CutieMark>();
+	this.hairColor0 = new Color32(msg.ReadByte(), msg.ReadByte(), msg.ReadByte(), 1);
+	this.hairColor1 = new Color32(msg.ReadByte(), msg.ReadByte(), msg.ReadByte(), 1);
+	this.bodyColor = new Color32(msg.ReadByte(), msg.ReadByte(), msg.ReadByte(), 1);
+	this.eyeColor = new Color32(msg.ReadByte(), msg.ReadByte(), msg.ReadByte(), 1);
+	this.hoofColor = new Color32(msg.ReadByte(), msg.ReadByte(), msg.ReadByte(), 1);
+	this.Mane = msg.ReadInt16();
+	this.Tail = msg.ReadInt16();
+	this.Eye = msg.ReadInt16();
+	this.Hoof = msg.ReadInt16();
+	this.BodySize = msg.ReadFloat();
+}
+
+PonyData data = data2;
+INetSerializable[] args = new INetSerializable[] { new IntSerializer(this.selectedNetCharacter), data };
+Net.RPC(1, args);
+
+Character data (SunButt) :
+46 00 00 b0 01					Header (5)
+01 ff ff ff ff 					???? (?> probably RCP stuff)
+07 								SunButt string lenght (1)
+53 75 6e 42 75 74 74 			SunButt string (7)
+03 								Race (1)
+02 								Gender (1)
+17 00 00 00						CutieMark 1
+06 00 00 00						CutieMark 2
+00 00 00 00						CutieMark 3
+ff cd fd						HairColor 0
+80 ff ed						HairColor 1
+ff ff e8 						BodyColor
+49 d1 ff 						EyeColor
+80 ff 80						HoofColor
+00 00							Mane
+01 00 							Tail
+00 00							Eye
+00 00							Hoof
+00 00 80 3f						BodySize
+
+=> Compare if the RCP stuff is always the same with different characters
+=> When it's done make a Load/Save character interface that take QByteArrays, then you can read/write those with files
+
+46 00 00 d0 01					Header (5)
+01								RCP number (1)
+ff ff ff ff						Pony id (4)
+0b 50 69 6e 6b6965205461696c0101000000000000000000000000ffff80ff80ff808080ff8080ffff8001000100010000000000803f
+
+=> Le 01 c'est le numero du RPC, c'est ca qu'on check
+=> Si on a ff ff ff ff, c'est un nouveau character
+=> Sinon c'est l'indice du character dans la liste (en partant de 0)
+
+=> Delete request
+46 1a 00 28 00	Header
+02 				RCP num
+00 00 00 00		Pony id
+
+?> The game probably expected somethign else than sending back the characters list ...
+
+=> Disconnect request (with message at the end)
+0x87, 0x00, 0x00, 0x90, 0x00, 
+0x11, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x65, 0x64, 0x20, 
+0x62, 0x79, 0x20, 0x75, 0x73, 0x65, 0x72 };
+
+=> Voir CharacterCreator.DrawBorderAndDescription, the code of the "Play" button is in there, it does more than just saving !
+=> When loading a scene as the answer for the Play button we get this exception and then tons od DayAndNight... exceptions
+
+NullReferenceException: Object reference not set to an instance of an object
+  at GUIManager.EnableGUI () [0x00000] in <filename unknown>:0 
+  at GUIManager.OnEnable () [0x00000] in <filename unknown>:0 
+  
+ => TODO: Find out EXACTLY what the Play button code in CharacterCreator.DrawBorderAndDescription does, then figure out what to send
+ 
+ ==> Dump of known button code
+ 
+if (GUI.Button(new Rect((float) (Screen.width - 60), 5f, 55f, 30f), text) && !isSaving)
+{
+	<DrawBorderAndDescription>c__AnonStorey14 storey = new <DrawBorderAndDescription>c__AnonStorey14();
+	isSaving = true;
+	this.SaveCharacter();
+	if (<>f__am$cache3A == null)
+	{
+		<>f__am$cache3A = delegate {};
+	}
+	storey.joined = <>f__am$cache3A;
+	storey.joined = new Action<string>(storey.<>m__1F);
+	Net.OnRoomChange = (Action<string>) Delegate.Combine(Net.OnRoomChange, storey.joined);
+	if (<>f__am$cache3B == null)
+	{
+		<>f__am$cache3B = delegate {};
+	}
+	BusyInfo("Saving character...", <>f__am$cache3B);
+}
+
+=> Aucune idee de ce que les Storey font, mais apparement le AnonStorey14 est capable d'activer les inputs (CInput)
+==> Make a log when it's called to see if loading a level fires it ?
+?> le isSaving sert surement à qqch
+
+=> WHAT ARE THOSE ACTION<STRING> THOU SPEAK OF ?
+
+An Action delegate is put simply an encapsulated method that returns no value, or a void encapsulated method. In this use case, it is acting as a call back that will fire off depending on what the type T is passed in for the System.Action, where T is a boolean variable.
+You can use the Action<T> delegate to pass a method as a parameter without explicitly declaring a custom delegate. The encapsulated method must correspond to the method signature that is defined by this delegate. This means that the encapsulated method must have one parameter that is passed to it by value, and it must not return a value. (In C#, the method must return void. In Visual Basic, it must be defined by the Sub…End Sub construct. It can also be a method that returns a value that is ignored.) Typically, such a method is used to perform an operation.
+=> All the actions are function-pointer-thingies that you can point to any private static void function and call anytime.
+?=> INB4 ACTIONS<> ARE THE MISSING NETWORK COMMANDS!
+==> Example of use :
+Action<string> messageTarget; 
+if (Environment.GetCommandLineArgs().Length > 1)
+	messageTarget = ShowWindowsMessage; // A function
+else
+	messageTarget = Console.WriteLine; // Another function
+messageTarget("Hello, World!"); // Call to whatever function is inside the action
+
+=> NOW WHAT ARE THOSE DELEGATE THINGS ?
+
+Ca reference une methode, donc on l'apelle comme un pointeur de fonction
+Quand on l'apelle elle lance TOUTE les fonction auquel elle a souscrite.
+On peut assigner une unique souscription avec =
+On peut soucrire/desouscrire de nouvelles fonctions avec des += et -=
+Faire Delegate.Combine souscris au deux arguments de combine seulement, donc invoque les deux quand appelee
+See http://forum.unity3d.com/threads/150321-C-delegates-I-love-you first, it explains everything
+See http://forum.unity3d.com/threads/119446-proper-use-of-delegates
+
+Exemple :
+OnSpawnEnemy = CreateTrolls;
+OnSpawnEnemy(4); // 4 trolls
+OnSpawnEnemy += CreateTrolls;
+OnSpawnEnemy += CreateOrcs;
+OnSpawnEnemy(4); // 4 trolls, 4 Orcs
+OnSpawnEnemy -= CreateTrolls;
+OnSpawnEnemy(4); // 4 Orcs
+
+On peut aussi faire des delegate anonymes, si on les appellent ils executent juste la fonction anynome entre {} example : OnSpawnEnemy = delegate { //stuffToDo } 
+
+
+=> Donc quand on fait Net.OnRoomChange = foo, c'est la fonction foo qui sera executée au prochain loadLevel !!!!!
+==> Ca explique des tonnes de choses ! Il doit y avoir un Net.OnRoomChange qui sert a charger le level normalement !!
+===> Chercher tout les Net.OnRoomChange et trouver ceux interressant ! Par exemple ceux qui initialisent ds choses ou qui touchent au personnages
+
+=> So basically the "Play" button code adds storey.<>m_1F(string) to the suscriptions of Net.OnRoomChange, add a log debug to confirm
+=> Quand storey.<>m_1F est appellee il apelle CharacterCreator.CloseBusyInfo(), se supprime des delegates de Net.OnRoomChange et appelle CInput.QuickEnable()
+=> So storey.<>m_1F is definitely called on loadLevel while saving but maybe the game expected to go back to CharacterSelect or something ?
+
+=> So recap de la fonction quand on clique Play
+=>Fait isSaving=true et saveCharacter()
+  Souscris storey.<>m_1F a Net.OnRoomChange
+===>storey.<>m_1F : apelle CharacterCreator.CloseBusyInfo(), se supprime des delegates de Net.OnRoomChange et appelle CInput.QuickEnable()
+=====>CloseBusyInfo() : if infoCloseAction==null return, sinon isSaving = false
+      call infoCloseAction(string.Empty), wich is a non null delegate (or else we would have exited)
+	  if the delegate noLongerBusy!=null, call noLongerBusy
+=====>CInput.QuickEnable() : Set InputControl.alldisabled = false
+  Call BusyInfo("Saving character...", <>f__am$cache3B) with <>f__am$cache3B a delegate (that may sometime be anon empty)
+====>BusyInfo : Cree une message box info "Please wait","Saving Character"
+     souscris infoCloseAction a la command de fermeture de cette message box (will be called in CloseBusyInfo())
+	 souscris noLongerBusy au parametre <>f__am$cache3B (will be called in CloseBusyInfo())
+
+=> TODO LIST :
+==> Find all subscriptors of <>f__am$cache3B => Toujours anon empty
+==> Find all subscriptors of Net.OnRoomChange => just loadLevel et storey.joined (aka <>m_1F)
+==> Just to be sure it's nothing, find all subscriptors of <>f__am$cache3A => Toujours anon empty
+===> So basically the play button is useless by itself. It just fires a message box and send character data.
+
+=> TODO LIST :
+==> Find WHAT IS Awake(),OnEnable(),OnDisable(), how to enable a script AND THE WHOLE monoBehavior STUFF IN UNITY !
+===> Enable/Disable a script/object by setting object.enabled=true/false;
+===> The order of the four methods of a script related to initialization is always:
+	 	Awake()
+	 	OnEnable()
+	 	OnLevelWasLoaded() // (only on scene changes)
+	 	Start()
+	 However, if your script was disabled in the first place(via Script.enabled=false), this order changes to:
+		 OnLevelWasLoaded() // is now called first, before Awake()! (only on scene changes)
+		 Awake()
+		 [OnEnable()/Start() are not executed until the script is actually enabled]
+==> Find all the NetIncomingMessage (or ReadByte maybe) to find the network data handlers
+==> Find who else is calling CInput
+==> Find who is calling DayAndNightController
+==> Find who is calling GUIManager (and find GUIManager.OnEnable)
+==> Find a delegate that loads interesting stuff
+==> Find important classes (the private one are almost always called on a special event)
+
+=> GUI.EnbaleGUI() calls a ShowMinimap() function ! If only it worked.
+==> Find what causes the exception and what is supposed to be called before EnableGUI to initialise stuff
+===> Then find a way to send a network request to initialise this stuff first
+
+
+====> See DayNightController::LevelLoaded
+public static void ApplicationStart()
+{
+	MonoBehaviours.onLevelWasLoaded = (Action<int>) Delegate.Combine(MonoBehaviours.onLevelWasLoaded, new Action<int>(DayNightController.LevelLoaded));
+}
+
+public static void LevelLoaded(int level)
+{
+	if (((Application.loadedLevelName != "MainMenu") && (Application.loadedLevelName != "Characters")) && (RenderSettings.skybox != null))
+	{
+		Instance.InitScene();
+	}
+	else
+	{
+		Instance.enabled = false;
+	}
+}
+
+=> See ProcessUtils in PNetU, there might be some interesting RPC actually
+==> Like setting the player ID, you probably need to do that at some point
+==> Or instantiate objects. Seems like a way to load prefabs in the world, maybe we can load the player's character this way ?
+===> Actually one of the parameter of Instantiate is num3 and it's checked against the player id, component.IsMine = PlayerId == num3;
+====> First set the player ID to something not too obvious, then instantiate a character somehow and give it the player ID
+
+=> This code is crazy. There is an entire class GameManager with just two arrays onlyActiveInGame/MainMenu and two functions on thoses array
+=> Except the arrays are never initialised and never referenced anywhere else. By all rights they should always be empty. But the class is still here.
+=> Same for the NetCharController, the localBehaviour array is always empty.
+==> But the empty arrays are all public. Maybe they are filled somewhere else but I can't find any references.
+
+=> MonoBehaviours.onLevelWasLoaded = (Action<int>) Delegate.Combine(MonoBehaviours.onLevelWasLoaded, new Action<int>(DayNightController.LevelLoaded));
+==> This is why we get tons of DayNightController errors when we forcefully loads a level
+==> This means that DayNightController is part of the game starting procedure.
+==> Thus if you find who is normally supposed to init DayNightController, you might find other infos about how to properly enter a game
+===> Find who is supposed to enable/init DayNightController, what to do to trigger normal behavior, and what happens next
+
+=> ApplyNetworkCharacter() looks like it loads a character ! Try to find a way to invoke it to see what it does.
+==> It's called each time there is a GetPonyData()
+==> GetPonyData is meant to read only one pony's data, then ApplyNetworkCharacter() will use only this pony's data
+==> Inb4 main character selection code
+===> Find who sends the RPC request for GetPonyData(), there should be a difference with the normal RPC to get the ponies list
+
+=> Request character list : 480000080006
+=> Request at level load : 	480200080006
+Well, that was unexpected. RPC for GetPonyData is RPC 200. It's called directly by the "/kick user" command.
+
+=> Maybe you could just make a list of all the functions that take an incoming message as argument and other kinds of RPC stuff.
+=> Then see wich one are related with the CharacterCreator, you know that at least the "list ponies" request and "load level" can close the "Saving" message box.
+=> List of requests that close the BusyInfo message on the character creator :
+==> Load level, loads a different scene, so that's kinda cheating
+==> Send ponies, sending the list of ponies just closes the message box
+==> Error, close the message box and open an error message box instead
+
+?==> Seems like send ponies is the expected behaviour and error in case of problem, so first close the message box then do something else
+
+=> PlayerId is the OwnerId of the player. When you instantiate objects they get an OwnerId, and if it matches the PlayerId, then IsMine=true 
+
+=> Instantiate loads an asset into the scene. The list of all the ressources per file is in the Ressources folder
+?=> To load file.prefab, use "instantiate file". Except the .prefab extension isn't recognised by the ressouce explorer, and I don't know the type id for .prefab
+===> Maybe type .43 is .prefab ?
+
+=> From the videos of a game's mod, enter game sequence is "Play"->Saving messagebox->Wait/Freeze->Loading screen->Wait/Freeze->Static view of ponyville, gui disabled (same as the one I get)->Wait/Freeze->View of behind an unknown full red generic character, gui still disabled->Same view but with the proper character (white with brown mane), and GUI loaded fully (chat, minimap, hotbar).
+==> So far we've got it right (or almost right given the exceptions in the log) until the scene is loaded. Still need to load character
+
+=> Fun fact : There is a "Singleplayer Mode" thingy in GameManager::Start
+
+TODO :
+- Do the TODO list in the server's widget.cpp
+- Remove the wordfilter inside the code. (Patch the function to do nothing)
+- Remove the register button, registration is automatic (do a br (jump) when it draws the button)
+
+=> OK SO NOW WE HAVE THE .CAP FILES !!
+==> So, this is now reverse engineering general 
+=> THERE CAN BE MUTLIPLE MESSAGES IN THE SAME UDP PACKET !
+=> YOU CAN HAVE 86 ..... 48 ..... IN THE SAME PACKET !
+==> THE PNET READING FUNCTION SHOULD ONLY DELETE THE SIZE THAT WAS READ, NOT THE WHOLE PACKET, THEN PROCESS AGAIN IF SOME DATA IS STILL IN THE BUFFER
+
+===> REVERSING OF : LoE6.cap
+1. Connection/PNet handshake 83, 84, 85
+2. Pings from both the client/server
+3. Server sends a 48 set player id and a 48 to load Characters scene
+4. Server sends a 46 with "MLKJ", probably character load list, and twice for some reasons (probably because the ACK was lost)
+5. Client sends a 48 06
+6. Server sends someone's chat message on 46
+7. Another round of pings and chat message from the server on the 46
+8. Client send a 46 with "MLKJ", probably character save list
+9. Server answers with a 48 to load GemMines (in the same UDP packet than the 86 ack)
+10. Another round of pings
+11. Server sends two 46 in the same UDP packet. First with the name "Lighning Chaser Kirito93", second is a 46 with 0E 00 00 00 00, probably character list
+12. Client sends a 48 06
+13. Server sends a huge UDP packet with multiple 48 inside, probably mobs list, contains "Mobs/Timberwolf" and "PlayerBase"
+14. Server send two 01 requests in the same UDP packet with 13 and 14 bytes of binary data
+15. Client sends a 4D with 07 00 04 and a 48 with 08 07 00
+16. Servers sends two 01 again
+17. Client sends a 48 with 08 60 00, another with 08 37 00 and another with 08 76 00
+18. Server sends two 54 in the same UDP packet, one with "Klondike Hicks", the name of a PNJ
+19. Server sends multiple small 54 in the same UDP
+20. Server sends a bunch of 54 and 01 again in the same UDP packet (this is wireshark packet 108)
+21. Server sends a fuckton of 54 again in 1 packet
+22. Server sends two 01 with binary data
+23. Server keeps sending more 01 on different UDP packets
+24. Client sends a 01 (UDP packet 122)
+25. Server sends a 46 contains "Brownie","Best Derped NPC"
+26. Server sends a 01 in the same packet
+27. Client sends a 4F with 76 00 CA 01 00 00 00
+28. Server sends a 01
+29. Client sends a 01 (UDP packet 129)
+30. Server sends a small 54
+31. Client sends another 01
+32. Server sends a 01
+33. Client sends a 01
+34. Server sends a 01
+35. They keep on exchanging a fucktons of 01 and acknoledging them on a lot of small UDP packets
+36. Client sends a 4F with 76 00 CA 00 00 00 00 (packet 174)
+37. They keep on exchanging 01 and the 4F packet is acknoledged, then server sends a 54 in the same packet (packet 186)
+38. They keep on exchanging a fucktons of 01 and acknoledging them on a lot of small UDP packets, also a ping round
+39. Server sends a 46 contains "Cappy Uni.:" (packet 258)
+40. They keep on exchanging a fucktons of 01 and acknoledging them on a lot of small UDP packets, the size of the 01 is often/always 24 or 18 bytes
+41. Server sends a 46 contains "Shadow Dreams", "Lol" (packet 373)
+42. They keep going with the 01, with pings in the middle, at some point Wireshark mistakenly recognise CIGI protocol (packet 471)
+43. The client sends a 87 (disconnect) with message "disconnecting"
+44. Client sends a ICMP unreachable to the server
+
+===> REVERSING OF : LoE7, very small capture, only loads GemMines level, wait ~2s and exit game, 308 UDP packets total
+1. Connect
+2. A round of pings
+3. Server sends 48 set player id and 48 load level "Characters" request
+4. Server sends 46 players list
+5. Server sends 46 chat message
+6. Client sends 48 06
+7. Client sends player save
+8. Server sends 48 load GemMines request
+9. Server sends 46 contains "Lighning Chaser","Kirito93" and a 46 E0 00 00 00 00
+10. Client sends a 48 06
+11. Server sends multiple 48, two of them contains "Mobs/Timberwolf" and another one contains "PlayerBase"
+12. They exchange a few 01
+13. Client sends a 4D 07 00 04
+14. Client sends a 48 08 07 00
+15. Exchange a few 01
+16. Server ack the 4D and the 48
+17. Client sends a 48 08 55 00
+18. Server sends a small 54 and a bigger 54 contains "Klondike Hicks"
+19. Client sends a 48 08 3C 00 and a 48 08 72 00
+20. Server sends four 54
+21. Server sends four 54 again
+22. Server sends more 54, one contains "MLKJ"
+23. Server sends more 54 and a 01
+24. Server sends a 46 chat message (packet 105)
+25. They exchange more 01 and pings
+26. Client sends a 4F 72 00 CA 01 00 00 00
+27. Servers ack and sends a 54 72 00 CA 01 00 00 00 (same data that the 4F received)
+28. They exchange more 01, mostly sent by the client
+29. Client disconnects
+
+=> We often get a message like "Lighning Chaser","Kirito93" when loggin in, that's weird.
+==> Not always tho, so it's probably the chat or something
+
+=> LoE11 is pretty clean, you're alone in the room but there are a few 46 messages, probably chat tho
+=> LoE12 is very clean too, but you're not alone in the room. I saw another blue guy while playing and there was probably another one too.
+
+?> LoE11 Enter game sequence
+Client sends the selected character
+Server sends the level to load
+Server sends a 46 that appears to be a chat message and two other 46
+Client ack the three 46 and sends a 48 06
+Server ack the 48 and replies a 48 with "PlayerBase", probably mobs/players list
+Client ack the 48 and send a 48 08 85 00, the data of the 08 may be different, but should be 08 XX 00
+Server ack the 48 and sends multiple 54, one of them contains "Mud Orange", the name of the character selected
+Client ack them
+Serer sends some more 54
+Client ack them too
+Then they start exchanging some 01 before the client's disconnection, the first 01 is probably the end of the enter game sequence and start of the sync
+
+=> TODO: Copy the login sequence in LoE11 exactly into the private server then see what it does
+=> Well maybe I did it wrong but it's not working.
+==> Let's try to understand what the game is doing with the packets we send
+
+=> The 48 "PlayerBase" and "Mob/Timberwolf" messages first
+==> Format of the Instantiate message :
+1 Message Type (48)
+4 Header
+1 Util type (1)
+X String (Key)
+2 Uint16 (ViewId)
+2 Uint16 (OwnerId)
+Vector
+Quaternion
+
+Example :
+01 Util type
+0a String size
+50 6c 61 79 65 72 42 61 73 65 String (PlayerBase)
+85 00 ViewId
+64 00 OwnerId
+7f 45 fd 41 be 21 95 bf 3e 0e 6a c2 Vector
+00 00 00 00 fd 98 7e bf 00 00 00 00 0f 13 d6 3d Quaternion
+
+===> I FORGOT TO SEND THE 48 04 TO SET THE PLAYER ID ! IT WAS HIDDEN IN THE SAME PACKET AS A CHAT MESSAGE (Packet 37 in LoE11)
+
+?> Content of the 01 sync messages
+
+01 76 02 98 00 Header
+85 00 Player id
+4b 14 d7 41 Time
+6a 0a db 41 Pos.x
+bf 21 95 bf Pos.y
+70 c8 61 c2 Pos.z
+70 Rot.y
+
+msg.WriteTime(false);
+new Vector3Serializer(this._transform.position).OnSerialize(msg);
+Vector3 vector = this._transform.rotation.QuatToEul2();
+if (this.XZRotationSynchronization)
+{
+	msg.WriteRangedSingle(vector.x, -6.283185f, 6.283185f, 8);
+	msg.WriteRangedSingle(vector.y, -6.283185f, 6.283185f, 8);
+	msg.WriteRangedSingle(vector.z, -6.283185f, 6.283185f, 8);
+}
+else
+{
+	msg.WriteRangedSingle(vector.y, -6.283185f, 6.283185f, 8);
+}
+
+Vector3Serializer writes 3 floats
+WriteTime(false) writes the time as a float (4 bytes)
+WriteRangedSingle writes 1 byte here
+
+=> Now when we walk into a teleported we get a message on 56, for example : 56 02 00 18 00 01 00 01 for Carousel boutique's interior
+==> Need to test from another location, like from the GemMines to Ponyville to see if the data is the global Id of the map to load or a map-relative teleporter Id
+===> Maybe search the messages starting by 56 in wireshark (data[0]==56)
+
+=> The message 54 calls a given view's RPC
+NetworkView view3;
+ushort id = msg.ReadUInt16();
+byte rpcID = msg.ReadByte();
+if (NetworkView.Find(id, out view3))
+{
+	view3.CallRPC(rpcID, msg);
+}
+
+=> All the 54 we send in LoE11 are to the view id 0085, wich is registered by us
+==> Find all the register functions and find id 0085
+===> The view id is the id of a view we registered before. Network view are instantiated/registered by the server's requests
+===> The view 0085 was the "PlayerBase"
+?===> PlayerBase and its associated methods/actions might be all defined in a unity ressource file
+====> Go analyze the function that instantiate NetworkViews to see if it registers the RPC or something
+====> Or just see the function that find the unity ressource file and find the RPC functions
+=====> Can't see the unity function that loads ressources in the C# code, it must be regular ASM, let's just finish the rest first
+
+=> The server sends 1 unique player ID per connected player, ID from disconnected players should be reused
+?> It also sends 1 unique view ID per entity. An entity can be a player or a NPC
+==> We should transform the Player structure into a Character structure that includes NPC, then add a "player" bool that is false for NPCs
+==> Add sendNetviewInstantiate/sendNetviewRPC and such functions to clean the netcode. Rename list entities/send entities list to something apropriate
+==> Create a character class and make player a class inheriting from character. Only player have socket infos and stuff
+==> Then when sockets are needed request a player and when only positions are needed request a character. Add some methods like resetPlayer
+
+=> Implement automated game start using the player infos.
+==> Those are the main static methods. The commented line are not necessary but I don't know what they do yet (one of them could be a cam quaternion)
+void sendEntitiesList(Player& player)
+{
+    if (!player.inGame)
+    {
+        sendPonies(player);
+        player.inGame=true;
+        return;
+    }
+
+    // Send the entities list if the game is starting (register the view "PlayerBase" with id 0085)
+    win.logMessage(QString("UDP : Sending entities list"));
+    sendMessage(player,MsgUserReliableOrdered6,QByteArray::fromHex("010a506c6179657242617365850064007f45fd41be2195bf3e0e6ac200000000fd987ebf000000000f13d63d")); // Sends a 48
+}
+
+void sendEntitiesList2(Player& player)
+{
+    // Send the entities list if the game is starting (sends RPC calls to the view with id 0085 (the PlayerBase))
+    win.logMessage(QString("UDP : Sending entities list 2"));
+    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850033000000c842")); // Sends a 54
+    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850032000000c842")); // Sends a 54
+    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850033010000c842")); // Sends a 54
+    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850032010000c842")); // Sends a 54
+    sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("8500c80a4d7564204f72616e676503034b000000000000000000000080c6ff9fd4fff2ff80df80ff85bf3401000900010000002e55693fdf69")); // Sends a 54
+
+    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("8500050c0020000a000000")); // Sends a 54
+    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("8500c30300000000000000ffffff7f01000000ffffff7f05000000ffffff7f")); // Sends a 54
+    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850032000000c842")); // Sends a 54
+    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850033000000c842")); // Sends a 54
+    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850032010000c842")); // Sends a 54
+    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850033010000c842")); // Sends a 54
+}

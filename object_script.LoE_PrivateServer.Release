@@ -1,0 +1,12 @@
+INPUT(
+./release\main.o
+./release\widget.o
+./release\tcp.o
+./release\udp.o
+./release\messages.o
+./release\utils.o
+./release\pingTimeout.o
+./release\character.o
+./release\moc_widget.o
+./release\qrc_gameFiles.o
+);
