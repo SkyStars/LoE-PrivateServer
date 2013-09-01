@@ -6,26 +6,13 @@
 
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::Widget)
+    ui(new Ui::Widget),
+    cmdPeer((Player&)*(new Player()))
 {
     tcpServer = new QTcpServer(this);
     udpSocket = new QUdpSocket(this);
     tcpReceivedDatas = new QByteArray();
     ui->setupUi(this);
-    /*
-    emptyPlayer.name="";
-    emptyPlayer.passhash="";
-    emptyPlayer.IP="";
-    emptyPlayer.connected=false;
-    emptyPlayer.inGame=false;
-    emptyPlayer.lastPingTime=0;
-    emptyPlayer.lastPingNumber = 0;
-    emptyPlayer.receivedDatas = new QByteArray();
-    for (int i=0;i<32;i++)
-        emptyPlayer.udpSequenceNumbers[i]=0;
-
-    cmdPeer = emptyPlayer;
-    */
 
     pingTimer = new QTimer(this);
 }
@@ -33,6 +20,14 @@ Widget::Widget(QWidget *parent) :
 Widget::~Widget()
 {
     tcpServer->close();
+
+    logMessage(QString("UDP : Disconnecting all players"));
+    for (;udpPlayers.size();)
+    {
+        sendMessage(udpPlayers[0], MsgDisconnect, "Connection closed by the server admin");
+        Player::disconnectPlayerCleanup(udpPlayers[0]);
+    }
+
     delete ui;
 }
 
@@ -164,8 +159,16 @@ void Widget::sendCmdLine()
 
     QString str = ui->cmdLine->text();
 
-    if (str.startsWith("setPeer "))
+    if (str.startsWith("setPeer"))
     {
+        if (udpPlayers.size() == 1)
+        {
+            cmdPeer = udpPlayers[0];
+            QString peerName = cmdPeer.IP + " " + QString().setNum(cmdPeer.port);
+            logMessage(QString("UDP : Peer set to ").append(peerName));
+            return;
+        }
+
         str = str.right(str.size()-8);
         QStringList args = str.split(' ');
         if (args.size() != 2)
@@ -181,16 +184,11 @@ void Widget::sendCmdLine()
             return;
         }
 
-        Player& player = Player::findPlayer(udpPlayers,args[0], port);
-        if (player.IP!="")
-        {
-            cmdPeer = player;
+        cmdPeer = Player::findPlayer(udpPlayers,args[0], port);
+        if (cmdPeer.IP!="")
             logMessage(QString("UDP : Peer set to ").append(str));
-        }
         else
-        {
             logMessage(QString("UDP : Peer not found (").append(str).append(")"));
-        }
         return;
     }
     else if (str.startsWith("listPeers"))
@@ -208,24 +206,36 @@ void Widget::sendCmdLine()
         logMessage("Select a peer first with setPeer/listPeers");
         return;
     }
+    else // Refresh peer info
+    {
+        cmdPeer = (Player&)Player::findPlayer(udpPlayers,cmdPeer.IP, cmdPeer.port);
+        if (cmdPeer.IP=="")
+        {
+            logMessage(QString("UDP : Peer not found"));
+            return;
+        }
+    }
 
     if (str.startsWith("disconnect"))
     {
         logMessage(QString("UDP : Disconnecting"));
-        sendMessage(cmdPeer,MsgDisconnect, "Connection closed by server");
+        sendMessage(cmdPeer,MsgDisconnect, "Connection closed by the server admin");
+        Player::disconnectPlayerCleanup(cmdPeer); // Save game and remove the player
     }
-    else if (str.startsWith("load "))
+    else if (str.startsWith("load"))
     {
         str = str.right(str.size()-5);
         logMessage(QString("UDP : Loading level ").append(str));
         QByteArray data(1,5);
-        data += stringToNetData(str);
+        data += stringToData(str);
 
         sendMessage(cmdPeer,MsgUserReliableOrdered6,data);
     }
     else if (str.startsWith("getPos"))
     {
-        logMessage(QString("Pos : x=") + QString.setNum(cmdPeer.pos.x) + ", y=" + QString.setNum(cmdPeer.pos.y) + ", z=" + QString.setNum(cmdPeer.pos.z))
+        logMessage(QString("Pos : x=") + QString().setNum(cmdPeer.pony.pos.x)
+                   + ", y=" + QString().setNum(cmdPeer.pony.pos.y)
+                   + ", z=" + QString().setNum(cmdPeer.pony.pos.z));
     }
     else if (str.startsWith("sendPonies"))
     {
@@ -237,7 +247,7 @@ void Widget::sendCmdLine()
         QByteArray data(1,3);
         sendMessage(cmdPeer,MsgUserReliableOrdered6,data);
     }
-    else if (str.startsWith("setPlayerId "))
+    else if (str.startsWith("setPlayerId"))
     {
         str = str.right(str.size()-12);
         QByteArray data(3,4);
@@ -253,7 +263,7 @@ void Widget::sendCmdLine()
         else
             logStatusMessage("Error : Player ID is a number");
     }
-    else if (str.startsWith("remove "))
+    else if (str.startsWith("remove"))
     {
         str = str.right(str.size()-7);
         QByteArray data(3,2);
@@ -269,18 +279,73 @@ void Widget::sendCmdLine()
         else
             logStatusMessage("Error : Remove needs the id of the view to remove");
     }
-    else if (str.startsWith("instantiate "))
+    else if (str.startsWith("sendPonyData"))
     {
+        QByteArray data(3,0xC8);
+        data[0] = cmdPeer.pony.netviewId;
+        data[1] = cmdPeer.pony.netviewId>>8;
+        data += cmdPeer.pony.ponyData;
+        sendMessage(cmdPeer, MsgUserReliableOrdered18, data);
+        return;
+    }
+    else if (str.startsWith("setStat"))
+    {
+        str = str.right(str.size()-8);
+        QStringList args = str.split(' ');
+        if (args.size() != 2)
+        {
+            logStatusMessage("Error : usage is setState StatID StatValue");
+            return;
+        }
+        bool ok,ok2;
+        quint8 statID = args[0].toInt(&ok);
+        float statValue = args[1].toFloat(&ok2);
+        if (!ok || !ok2)
+        {
+            logStatusMessage("Error : usage is setState StatID StatValue");
+            return;
+        }
+        sendSetStatRPC(cmdPeer, statID, statValue);
+    }
+    else if (str.startsWith("setMaxStat"))
+    {
+        str = str.right(str.size()-11);
+        QStringList args = str.split(' ');
+        if (args.size() != 2)
+        {
+            logStatusMessage("Error : usage is setMaxStat StatID StatValue");
+            return;
+        }
+        bool ok,ok2;
+        quint8 statID = args[0].toInt(&ok);
+        float statValue = args[1].toFloat(&ok2);
+        if (!ok || !ok2)
+        {
+            logStatusMessage("Error : usage is setMaxState StatID StatValue");
+            return;
+        }
+        sendSetMaxStatRPC(cmdPeer, statID, statValue);
+    }
+    else if (str.startsWith("instantiate"))
+    {
+        if (str == "instantiate")
+        {
+            logStatusMessage("UDP : Instantiating");
+            sendNetviewInstantiate(cmdPeer);
+            return;
+        }
+
         QByteArray data(1,1);
         str = str.right(str.size()-12);
         QStringList args = str.split(' ');
+
         if (args.size() != 3 && args.size() != 6 && args.size() != 10)
         {
-            logStatusMessage(QString("Error : Instantiate takes 3, 6 or 10 arguments").append(str));
+            logStatusMessage(QString("Error : Instantiate takes 0,3,6 or 10 arguments").append(str));
             return;
         }
         // Au as au moins les 3 premiers de toute facon
-        data += stringToNetData(args[0]);
+        data += stringToData(args[0]);
         unsigned viewId, ownerId;
         bool ok1, ok2;
         viewId = args[1].toUInt(&ok1);
@@ -351,17 +416,17 @@ void Widget::sendCmdLine()
 
         sendMessage(cmdPeer,MsgUserReliableOrdered4, data);
     }
-    else if (str.startsWith("setDialogMsg "))
+    else if (str.startsWith("setDialogMsg"))
     {
         str = str.right(str.size()-13);
         QByteArray data(1,0);
         data[0] = 0x11; // Request number
 
-        data += stringToNetData(str);
+        data += stringToData(str);
 
         sendMessage(cmdPeer,MsgUserReliableOrdered4, data);
     }
-    else if (str.startsWith("move "))
+    else if (str.startsWith("move"))
     {
         str = str.right(str.size()-5);
         QByteArray data(1,0);
@@ -385,13 +450,13 @@ void Widget::sendCmdLine()
 
         sendMessage(cmdPeer,MsgUserReliableOrdered4, data);
     }
-    else if (str.startsWith("error "))
+    else if (str.startsWith("error"))
     {
         str = str.right(str.size()-6);
         QByteArray data(1,0);
         data[0] = 0x7f; // Request number
 
-        data += stringToNetData(str);
+        data += stringToData(str);
 
         sendMessage(cmdPeer,MsgUserReliableOrdered4, data);
     }

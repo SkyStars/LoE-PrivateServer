@@ -2,6 +2,7 @@
 #define MESSAGE_H
 
 #include "character.h"
+#include <QPair>
 
 enum MessageTypes {
     MsgUnconnected = 0,
@@ -27,11 +28,13 @@ enum MessageTypes {
 float timestampNow();
 QByteArray doubleToData(double num);
 QByteArray floatToData(float num);
-QByteArray stringToNetData(QString str);
-QString netDataToString(QByteArray data);
+float dataToFloat(QByteArray data);
+QByteArray stringToData(QString str);
+QString dataToString(QByteArray data);
 QByteArray vectorToData(UVector vec);
+UVector dataToVector(QByteArray data);
 QByteArray quaternionToData(UQuaternion quat);
-void receiveSync(Player& player);
+void receiveSync(Player& player, QByteArray data);
 void receiveMessage(Player& player);
 void sendMessage(Player& player, quint8 messageType, QByteArray data=QByteArray());
 void sendEntitiesList(Player& player);
@@ -39,6 +42,9 @@ void sendEntitiesList2(Player& player);
 void sendPonies(Player& player);
 void sendNetviewInstantiate(Player& player, QString key, quint16 ViewId, quint16 OwnerId, UVector pos, UQuaternion rot);
 void sendNetviewInstantiate(Player& player);
-void sendNetviewRPC(Player& player);
+void sendSetStatRPC(Player& player, quint8 statId, float value);
+void sendSetMaxStatRPC(Player& player, quint8 statId, float value);
+void sendInventoryRPC(Player& player, QList<InventoryItem> inv, QList<WearableItem> worn, quint32 nBits);
+void sendSkillsRPC(Player& player, QList<QPair<quint32, quint32> > skills);
 
 #endif // MESSAGE_H

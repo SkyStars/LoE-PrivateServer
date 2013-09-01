@@ -57,15 +57,15 @@ public:
 public:
     float startTimestamp;
     QUdpSocket *udpSocket;
+    QList<Player> tcpPlayers; // Used by the TCP login server
+    QList<Player> udpPlayers; // Used by the UDP game server
 
 private:
     Ui::Widget *ui;
     QTcpServer *tcpServer;
     QList<QTcpSocket *> tcpClientsList;
     QByteArray *tcpReceivedDatas;
-    Player cmdPeer;
-    QList<Player> tcpPlayers; // Used by the TCP login server
-    QList<Player> udpPlayers; // Used by the UDP game server
+    Player& cmdPeer;
     QTimer *pingTimer;
 
     // Config

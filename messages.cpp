@@ -18,7 +18,7 @@ QByteArray doubleToData(double num)
     //*((double*) n) = num;
 
     castUnion.n=num;
-    return QByteArray::fromRawData(castUnion.tab,8);
+    return QByteArray(castUnion.tab,8);
 }
 
 QByteArray floatToData(float num)
@@ -29,16 +29,27 @@ QByteArray floatToData(float num)
         float n;
     } castUnion;
 
-    //char n[4];
-    //*((float*) n) = num;
-    //return QByteArray::fromRawData(n,4);
-
     castUnion.n=num;
-    return QByteArray::fromRawData(castUnion.tab,4);
+    return QByteArray(castUnion.tab,4);
+}
+
+float dataToFloat(QByteArray data)
+{
+    union
+    {
+        char tab[4];
+        float n;
+    } castUnion;
+
+    castUnion.tab[0]=data.data()[0];
+    castUnion.tab[1]=data.data()[1];
+    castUnion.tab[2]=data.data()[2];
+    castUnion.tab[3]=data.data()[3];
+    return castUnion.n;
 }
 
 // Converts a string into PNet string data
-QByteArray stringToNetData(QString str)
+QByteArray stringToData(QString str)
 {
     QByteArray data(4,0);
     // Write the size in a Uint of variable lenght (8-32 bits)
@@ -55,7 +66,7 @@ QByteArray stringToNetData(QString str)
     return data;
 }
 
-QString netDataToString(QByteArray data)
+QString dataToString(QByteArray data)
 {
     // Variable UInt32
     byte num3;
@@ -76,6 +87,34 @@ QString netDataToString(QByteArray data)
     data = data.right(data.size()-i); // Remove the strlen
     data.truncate(strlen);
     return QString(data);
+}
+
+QByteArray vectorToData(UVector vec)
+{
+    QByteArray data;
+    data += floatToData(vec.x);
+    data += floatToData(vec.y);
+    data += floatToData(vec.z);
+    return data;
+}
+
+UVector dataToVector(QByteArray data)
+{
+    UVector vec;
+    vec.x = dataToFloat(data);
+    vec.y = dataToFloat(data.mid(4));
+    vec.z = dataToFloat(data.mid(8));
+    return vec;
+}
+
+QByteArray quaternionToData(UQuaternion quat)
+{
+    QByteArray data;
+    data += floatToData(quat.x);
+    data += floatToData(quat.y);
+    data += floatToData(quat.z);
+    data += floatToData(quat.w);
+    return data;
 }
 
 void receiveMessage(Player& player)
@@ -116,18 +155,21 @@ void receiveMessage(Player& player)
         // Start game
         win.logMessage(QString("UDP : Starting game"));
 
+        // Set local player id
+        // TODO: Use a unique id per player starting from 1
+        player.pony.id = 0x64;
+        player.pony.netviewId = 0x85;
+
         // Set player Id request
         QByteArray id(3,0);
         id[0]=4;
-        //id[1]=player.id;
-        //id[2]=player.id>>8;
-        id[1] = 0x64;
-        id[2] = 0x00;
+        id[1]=player.pony.id;
+        id[2]=player.pony.id>>8;
         sendMessage(player,MsgUserReliableOrdered6,id); // Sends a 48
 
         // Load Characters screen requets
         QByteArray data(1,5);
-        data += stringToNetData("Characters");
+        data += stringToData("Characters");
         sendMessage(player,MsgUserReliableOrdered6,data); // Sends a 48
     }
     else if ((unsigned char)msg[0] == MsgAcknowledge) // Acknoledge
@@ -137,12 +179,14 @@ void receiveMessage(Player& player)
     else if ((unsigned char)msg[0] == MsgDisconnect) // Disconnect
     {
         win.logMessage("UDP : Client disconnected");
-        player = Player();
+        Player::disconnectPlayerCleanup(player); // Save game and remove the player
+
+        return; // We can't use Player& player anymore, it referes to free'd memory.
     }
     else if ((unsigned char)msg[0] >= MsgUserReliableOrdered1 && (unsigned char)msg[0] <= MsgUserReliableOrdered32) // UserReliableOrdered
     {
-        //win.logMessage("UDP : Data received (hex) : ");
-        //win.logMessage(player.receivedDatas->toHex().constData());
+        win.logMessage("UDP : Data received (hex) : ");
+        win.logMessage(player.receivedDatas->toHex().constData());
 
         QByteArray data(3,0);
         data[0] = msg[0]; // ack type
@@ -160,35 +204,44 @@ void receiveMessage(Player& player)
         }
         else if ((unsigned char)msg[0]==MsgUserReliableOrdered4 && (unsigned char)msg[5]==0x1) // Edit ponies request
         {
-            QList<QByteArray> ponies = Player::loadPonies(player);
-            QByteArray pony = msg.right(msg.size()-10);
-            if ((unsigned char)msg[6]==0xff && (unsigned char)msg[7]==0xff && (unsigned char)msg[8]==0xff && (unsigned char)msg[9]==0xff) // Add new character
+            QList<Pony> ponies = Player::loadPonies(player);
+            QByteArray ponyData = msg.right(msg.size()-10);
+            Pony pony;
+            if ((unsigned char)msg[6]==0xff && (unsigned char)msg[7]==0xff && (unsigned char)msg[8]==0xff && (unsigned char)msg[9]==0xff)
             {
+                // Create the new pony for this player
+                pony.ponyData = ponyData;
+                pony.sceneName = "Ponyville";
+                pony.pos = UVector(-3.80378, -195.301, 176.69); // In front of the Town Hall
                 ponies += pony;
             }
             else
             {
                 quint32 id = msg[6] +(msg[7]<<8) + (msg[8]<<16) + (msg[9]<<24);
-                ponies[id] = pony;
+                ponies[id].ponyData = ponyData;
+                pony = ponies[id];
             }
+            pony.id = player.pony.id;
+            pony.netviewId = player.pony.netviewId;
+            player.pony = pony;
 
-            Player::savePonies(player,ponies);
+            Player::savePonies(player, ponies);
 
             win.logMessage(QString("UDP : Requesting scene"));
             QByteArray data(1,5);
-            data += stringToNetData("Ponyville");
+            data += stringToData(player.pony.sceneName);
             sendMessage(player,MsgUserReliableOrdered6,data); // Sends a 48
 
-            //Send the 46 chat messages
-            //win.logMessage(QString("UDP : Sending 46 chat messages"));
-            //sendMessage(player,MsgUserReliableOrdered4,QByteArray::fromHex("0f2a4262ae5248d048040000000a50696e6b696520506f6509616e64206f74686572a009000000")); // Sends a 46
-            //sendMessage(player,MsgUserReliableOrdered4,QByteArray::fromHex("141500000000")); // Sends a 46
-            //sendMessage(player,MsgUserReliableOrdered4,QByteArray::fromHex("0e00000000")); // Sends a 46
+            //Send the 46s
+            win.logMessage(QString("UDP : Sending the 46 messages"));
+
+            sendMessage(player,MsgUserReliableOrdered4,QByteArray::fromHex("141500000000")); // Sends a 46, init friends
+            sendMessage(player,MsgUserReliableOrdered4,QByteArray::fromHex("0e00000000")); // Sends a 46, init journal
         }
         else if ((unsigned char)msg[0]==MsgUserReliableOrdered4 && (unsigned char)msg[5]==0x2) // Delete pony request
         {
             win.logMessage(QString("UDP : Deleting a character"));
-            QList<QByteArray> ponies = Player::loadPonies(player);
+            QList<Pony> ponies = Player::loadPonies(player);
             quint32 id = msg[6] +(msg[7]<<8) + (msg[8]<<16) + (msg[9]<<24);
             ponies.removeAt(id);
 
@@ -206,7 +259,7 @@ void receiveMessage(Player& player)
     }
     else if ((unsigned char)msg[0]==MsgUserUnreliable) // Sync (position) update
     {
-        if ((unsigned char)msg[5]==player.id && (unsigned char)msg[6]==player.id>>8)
+        if ((unsigned char)msg[5]==(unsigned char)player.pony.netviewId && (unsigned char)msg[6]==(unsigned char)player.pony.netviewId>>8)
             receiveSync(player, msg);
     }
     else
@@ -319,19 +372,15 @@ void sendMessage(Player& player,quint8 messageType, QByteArray data)
             return;
         }
     }
-    else if (messageType == MsgDisconnect) // Reset player after sending the disconnect
-    {
-        player = Player();
-    }
 }
 
 void sendPonies(Player& player)
 {
     // The full request is like a normal sendPonies but with all the serialized ponies at the end
-    QList<QByteArray> ponies = Player::loadPonies(player);
-    quint32 poniesSize=0;
+    QList<Pony> ponies = Player::loadPonies(player);
+    quint32 poniesDataSize=0;
     for (int i=0;i<ponies.size();i++)
-        poniesSize+=ponies[i].size();
+        poniesDataSize+=ponies[i].ponyData.size();
 
     QByteArray data(5,0);
     data[0] = 1; // Request number
@@ -341,7 +390,7 @@ void sendPonies(Player& player)
     data[4] = ponies.size()>>24; // Number of ponies
 
     for (int i=0;i<ponies.size();i++)
-        data += ponies[i];
+        data += ponies[i].ponyData;
 
     win.logMessage(QString("UDP : Sending characters data"));
     sendMessage(player, MsgUserReliableOrdered4, data);
@@ -356,42 +405,76 @@ void sendEntitiesList(Player& player)
         return;
     }
 
-    UVector pos;
-    UQuaternion rot;
-
-    // Send the entities list if the game is starting (register the view "PlayerBase" with id 0085)
+    // Send the entities list if a new scene is loading
     win.logMessage(QString("UDP : Sending entities list"));
-    //sendMessage(player,MsgUserReliableOrdered6,QByteArray::fromHex("010a506c6179657242617365850064007f45fd41be2195bf3e0e6ac200000000fd987ebf000000000f13d63d")); // Sends a 48
-    sendNetviewInstantiate(player, "PlayerBase", 0x85, 0x64, pos, rot);
+    sendNetviewInstantiate(player);
+    //sendMessage(player, MsgUserReliableOrdered6, QByteArray::fromHex("010a506c6179657242617365850064007f45fd41be2195bf3e0e6ac200000000fd987ebf000000000f13d63d"));
+
+    // Sends the ponyData
+    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("8500c80a4d7564204f72616e676503034b000000000000000000000080c6ff9fd4fff2ff80df80ff85bf3401000900010000002e55693fdf69")); // Sends a 54
+    QByteArray data(3,0xC8);
+    data[0] = player.pony.netviewId;
+    data[1] = player.pony.netviewId>>8;
+    data += player.pony.ponyData;
+    sendMessage(player, MsgUserReliableOrdered18, data);
 }
 
 void sendEntitiesList2(Player& player)
 {
     // Send the entities list if the game is starting (sends RPC calls to the view with id 0085 (the PlayerBase))
     win.logMessage(QString("UDP : Sending entities list 2"));
-    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850033000000c842")); // Sends a 54
-    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850032000000c842")); // Sends a 54
-    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850033010000c842")); // Sends a 54
-    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850032010000c842")); // Sends a 54
-    sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("8500c80a4d7564204f72616e676503034b000000000000000000000080c6ff9fd4fff2ff80df80ff85bf3401000900010000002e55693fdf69")); // Sends a 54
 
+    // Set current/max stats
+    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850033000000c842")); // Sends a 54
+    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850032000000c842")); // Sends a 54
+    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850033010000c842")); // Sends a 54
+    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850032010000c842")); // Sends a 54
+    sendSetMaxStatRPC(player, 0, 100);
+    sendSetStatRPC(player, 0, 100);
+    sendSetMaxStatRPC(player, 1, 100);
+    sendSetStatRPC(player, 1, 100);
+
+
+
+    // Set inventory (always empty at the moment)
     //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("8500050c0020000a000000")); // Sends a 54
+    QList<InventoryItem> inv;
+    QList<WearableItem> worn;
+    sendInventoryRPC(player, inv, worn, 10); // Start with 10 bits and no inventory, until we implement it correctly
+
+    // Send skills (always the same at the moment)
     //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("8500c30300000000000000ffffff7f01000000ffffff7f05000000ffffff7f")); // Sends a 54
+    QList<QPair<quint32, quint32> > skills;
+    skills << QPair<quint32, quint32>(0, 0x7FFFFFFF);
+    skills << QPair<quint32, quint32>(1, 0x7FFFFFFF);
+    skills << QPair<quint32, quint32>(5, 0x7FFFFFFF);
+    sendSkillsRPC(player, skills);
+
+    // Set current/max stats
     //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850032000000c842")); // Sends a 54
     //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850033000000c842")); // Sends a 54
     //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850032010000c842")); // Sends a 54
     //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850033010000c842")); // Sends a 54
+    sendSetStatRPC(player, 0, 100);
+    sendSetMaxStatRPC(player, 0, 100);
+    sendSetStatRPC(player, 1, 100);
+    sendSetMaxStatRPC(player, 1, 100);
 }
 
 void receiveSync(Player& player, QByteArray data) // Receives the 01 updates from each players
 {
+    // 5 and 6 are id and id>>8
+    player.pony.pos.x = dataToFloat(data.right(data.size()  - 11));
+    player.pony.pos.y = dataToFloat(data.right(data.size()  - 15));
+    player.pony.pos.z = dataToFloat(data.right(data.size()  - 19));
 
+    // TODO : Get the quaternion data and store it (rot.y)
 }
 
 void sendNetviewInstantiate(Player& player, QString key, quint16 ViewId, quint16 OwnerId, UVector pos, UQuaternion rot)
 {
     QByteArray data(1,1);
-    data += stringToNetData(key);
+    data += stringToData(key);
     QByteArray data2(4,0);
     data2[0]=ViewId;
     data2[1]=ViewId>>8;
@@ -401,39 +484,98 @@ void sendNetviewInstantiate(Player& player, QString key, quint16 ViewId, quint16
     data += vectorToData(pos);
     data += quaternionToData(rot);
     sendMessage(player, MsgUserReliableOrdered6, data);
-
-    win.logMessage(QString("UTC: Sending data : " + data.toHex()));
-
-    /*
-    0a String size
-    50 6c 61 79 65 72 42 61 73 65 String (PlayerBase)
-    85 00 ViewId
-    64 00 OwnerId
-    7f 45 fd 41 be 21 95 bf 3e 0e 6a c2 Vector
-    00 00 00 00 fd 98 7e bf 00 00 00 00 0f 13 d6 3d Quaternion
-    */
 }
 
-void sendNetviewRPC(Player& player)
+void sendNetviewInstantiate(Player& player)
 {
-
+    QByteArray data(1,1);
+    data += stringToData("PlayerBase");
+    QByteArray data2(4,0);
+    data2[0]=player.pony.netviewId;
+    data2[1]=player.pony.netviewId>>8;
+    data2[2]=player.pony.id;
+    data2[3]=player.pony.id>>8;
+    data += data2;
+    data += vectorToData(player.pony.pos);
+    data += quaternionToData(player.pony.rot);
+    sendMessage(player, MsgUserReliableOrdered6, data);
 }
 
-QByteArray vectorToData(UVector vec)
+void sendSetStatRPC(Player& player, quint8 statId, float value)
 {
-    QByteArray data;
-    data += floatToData(vec.x);
-    data += floatToData(vec.y);
-    data += floatToData(vec.z);
-    return data;
+    QByteArray data(4,50);
+    data[0] = player.pony.netviewId;
+    data[1] = player.pony.netviewId>>8;
+    data[3] = statId;
+    data += floatToData(value);
+    sendMessage(player, MsgUserReliableOrdered18, data);
 }
 
-QByteArray quaternionToData(UQuaternion quat)
+void sendSetMaxStatRPC(Player& player, quint8 statId, float value)
 {
-    QByteArray data;
-    data += floatToData(quat.x);
-    data += floatToData(quat.y);
-    data += floatToData(quat.z);
-    data += floatToData(quat.w);
-    return data;
+    QByteArray data(4,51);
+    data[0] = player.pony.netviewId;
+    data[1] = player.pony.netviewId>>8;
+    data[3] = statId;
+    data += floatToData(value);
+    sendMessage(player, MsgUserReliableOrdered18, data);
+}
+
+void sendInventoryRPC(Player& player, QList<InventoryItem> inv, QList<WearableItem> worn, quint32 nBits)
+{
+    QByteArray data(5, 5);
+    data[0] = player.pony.netviewId;
+    data[1] = player.pony.netviewId>>8;
+    data[3] = 12; // Max Inventory Size
+    data[4] = inv.size();
+    for (int i=0;i<inv.size();i++)
+    {
+        data += inv[i].index;
+        data += inv[i].id;
+        data += inv[i].id>>8;
+        data += inv[i].id>>16;
+        data += inv[i].id>>24;
+        data += inv[i].amount;
+        data += inv[i].amount>>8;
+        data += inv[i].amount>>16;
+        data += inv[i].amount>>24;
+    }
+    data += 32; // Max Worn Items
+    data += worn.size();
+    for (int i=0;i<worn.size();i++)
+    {
+        data += worn[i].index;
+        data += worn[i].id;
+        data += worn[i].id>>8;
+        data += worn[i].id>>16;
+        data += worn[i].id>>24;
+    }
+    data += nBits;
+    data += nBits>>8;
+    data += nBits>>16;
+    data += nBits>>24;
+    sendMessage(player, MsgUserReliableOrdered18, data);
+}
+
+void sendSkillsRPC(Player& player, QList<QPair<quint32, quint32> > skills)
+{
+    QByteArray data(7, 0xC3);
+    data[0] = player.pony.netviewId;
+    data[1] = player.pony.netviewId>>8;
+    data[3] = skills.size();
+    data[4] = skills.size()>>8;
+    data[5] = skills.size()>>16;
+    data[6] = skills.size()>>24;
+    for (int i=0;i<skills.size();i++)
+    {
+        data += skills[i].first;
+        data += skills[i].first>>8;
+        data += skills[i].first>>16;
+        data += skills[i].first>>24;
+        data += skills[i].second;
+        data += skills[i].second>>8;
+        data += skills[i].second>>16;
+        data += skills[i].second>>24;
+    }
+    sendMessage(player, MsgUserReliableOrdered18, data);
 }

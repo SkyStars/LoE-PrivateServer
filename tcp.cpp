@@ -137,7 +137,7 @@ void Widget::tcpProcessData(QByteArray data, QTcpSocket* socket)
 
             // Add player to the players vector
             // TODO: If there is already a player with that name, check the passhashes
-            Player& player = Player::findPlayer(tcpPlayers, username);
+            Player player = Player::findPlayer(tcpPlayers, username);
             if (player.name != username) // Not found, create a new player
             {
                 // Check max registered number

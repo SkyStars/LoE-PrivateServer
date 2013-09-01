@@ -34,17 +34,22 @@ UQuaternion::UQuaternion(float ux, float uy, float uz, float uw)
     w=uw;
 }
 
-Character::Character()
+SceneEntity::SceneEntity()
 {
-    name = QString();
-    id = 0x0085;
-    netviewId = 0x0064;
+    modelName = QString();
+    id = 0;
+    netviewId = 0;
     pos=UVector(0,0,0);
     rot=UQuaternion(0,0,0,0);
     sceneName = QString();
 }
 
-Player::Player() : Character()
+Pony::Pony() : SceneEntity()
+{
+    modelName = "PlayerBase";
+}
+
+Player::Player()
 {
     connected=false;
     inGame=false;
@@ -53,6 +58,7 @@ Player::Player() : Character()
     port=0;
     IP=QString();
     receivedDatas = new QByteArray;
+    pony = Pony();
     for (int i=0;i<32;i++)
         udpSequenceNumbers[i]=0;
 }
@@ -60,11 +66,6 @@ Player::Player() : Character()
 void Player::reset()
 {
     name.clear();
-    id = 0;
-    netviewId = 0;
-    pos=UVector(0,0,0);
-    rot=UQuaternion(0,0,0,0);
-    sceneName.clear();
     connected=false;
     inGame=false;
     lastPingNumber=0;
@@ -72,6 +73,7 @@ void Player::reset()
     port=0;
     IP.clear();
     receivedDatas->clear();
+    pony = Pony();
     for (int i=0;i<32;i++)
         udpSequenceNumbers[i]=0;
 }
@@ -155,37 +157,106 @@ Player& Player::findPlayer(QList<Player>& players, QString uIP, quint16 uport)
     return *emptyPlayer;
 }
 
-void Player::savePonies(Player& player, QList<QByteArray> ponies)
+void Player::savePonies(Player& player, QList<Pony> ponies)
 {
-    win.logMessage(QString("UDP : Saving new character data"));
+    win.logMessage(QString("UDP : Saving ponies for player " + player.name));
 
     QDir playerPath(QDir::currentPath());
     playerPath.cd("data");
     playerPath.cd("players");
     playerPath.mkdir(player.name.toLatin1());
 
-
     QFile file(QDir::currentPath()+"/data/players/"+player.name.toLatin1()+"/ponies.dat");
     file.open(QIODevice::ReadWrite | QIODevice::Truncate);
     for (int i=0; i<ponies.size(); i++)
     {
-        file.write(ponies[i]);
-        file.putChar('\31');
+        file.write(ponies[i].ponyData);
+        file.write(vectorToData(ponies[i].pos));
+        file.write(stringToData(ponies[i].sceneName));
     }
 }
 
-QList<QByteArray> Player::loadPonies(Player& player)
+QList<Pony> Player::loadPonies(Player& player)
 {
-    QList<QByteArray> ponies;
+    QList<Pony> ponies;
     QFile file(QDir::currentPath()+"/data/players/"+player.name.toLatin1()+"/ponies.dat");
     if (!file.open(QIODevice::ReadOnly))
         return ponies;
 
-    ponies = file.readAll().split('\31');
+    QByteArray data = file.readAll();
 
-    for (int i=0;i<ponies.size();i++)
-        if (ponies[i].trimmed().isEmpty())
-            ponies.removeAt(i);
+    int i=0;
+    while (i<data.size())
+    {
+        Pony pony;
+        // Read the ponyData
+        unsigned strlen;
+        unsigned lensize=0;
+        {
+            byte num3; int num=0, num2=0;
+            do {
+                num3 = data[i+lensize]; lensize++;
+                num |= (num3 & 0x7f) << num2;
+                num2 += 7;
+            } while ((num3 & 0x80) != 0);
+            strlen = (uint) num;
+        }
+        int ponyDataSize = strlen+lensize+43;
+        pony.ponyData = data.mid(i,ponyDataSize);
+        i+=ponyDataSize;
+
+        // Read pos
+        UVector pos = dataToVector(data.mid(i,12));
+        pony.pos = pos;
+        i+=12;
+
+        // Read sceneName
+        unsigned strlen2;
+        unsigned lensize2=0;
+        {
+            byte num3; int num=0, num2=0;
+            do {
+                num3 = data[i+lensize2]; lensize2++;
+                num |= (num3 & 0x7f) << num2;
+                num2 += 7;
+            } while ((num3 & 0x80) != 0);
+            strlen2 = (uint) num;
+        }
+        pony.sceneName = data.mid(i+lensize2, strlen2);
+        i+=strlen2+lensize2;
+
+        ponies << pony;
+    }
 
     return ponies;
+}
+
+void Player::disconnectPlayerCleanup(Player& player)
+{
+    // Save the pony
+    QList<Pony> ponies = loadPonies(player);
+    for (int i=0; i<ponies.size(); i++)
+        if (ponies[i].ponyData == player.pony.ponyData)
+            ponies[i] = player.pony;
+    savePonies(player, ponies);
+
+    QString uIp = player.IP;
+    quint16 uPort = player.port;
+
+    for (int i=0; i<win.udpPlayers.size(); i++)
+    {
+        if (win.udpPlayers[i].IP == uIp && win.udpPlayers[i].port == uPort)
+            win.udpPlayers.removeAt(i);
+    }
+}
+
+WearableItem::WearableItem()
+{
+    id=0;
+    index=0;
+}
+
+InventoryItem::InventoryItem() : WearableItem()
+{
+    amount=0;
 }

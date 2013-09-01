@@ -403,42 +403,44 @@ public class PonyData : INetSerializable
 
 public void OnSerialize(NetOutgoingMessage msg)
 {
-	msg.Write(this.name);
-	msg.Write((byte) this.race);
-	msg.Write((byte) this.gender);
-	msg.Write(this.CutieMarks[0].ID);
-	msg.Write(this.CutieMarks[1].ID);
-	msg.Write(this.CutieMarks[2].ID);
-	msg.Write(this.hairColor0.RGBBytes());
-	msg.Write(this.hairColor1.RGBBytes());
-	msg.Write(this.bodyColor.RGBBytes());
-	msg.Write(this.eyeColor.RGBBytes());
-	msg.Write(this.hoofColor.RGBBytes());
-	msg.Write(this.Mane);
-	msg.Write(this.Tail);
-	msg.Write(this.Eye);
-	msg.Write(this.Hoof);
-	msg.Write(this.BodySize);
+    msg.Write(this.name);
+    msg.Write((byte) this.race);
+    msg.Write((byte) this.gender);
+    msg.Write(this.CutieMarks[0].ID);
+    msg.Write(this.CutieMarks[1].ID);
+    msg.Write(this.CutieMarks[2].ID);
+    msg.Write(this.hairColor0.RGBBytes());
+    msg.Write(this.hairColor1.RGBBytes());
+    msg.Write(this.bodyColor.RGBBytes());
+    msg.Write(this.eyeColor.RGBBytes());
+    msg.Write(this.hoofColor.RGBBytes());
+    msg.Write(this.Mane);
+    msg.Write(this.Tail);
+    msg.Write(this.Eye);
+    msg.Write(this.Hoof);
+    msg.Write(this.BodySize);
+    msg.WriteRangedSingle(this.HornSize, 0f, 2f, 0x10);
 }
 	
 public void OnDeserialize(NetIncomingMessage msg)
 {
-	this.name = msg.ReadString();
-	this.race = (LoE.Shared.CharacterType) msg.ReadByte();
-	this.gender = (Gender) msg.ReadByte();
-	this.CutieMarks = (from id in new int[] { msg.ReadInt32(), msg.ReadInt32(), msg.ReadInt32() } select StaticData.CutieMarks[id]).ToArray<CutieMark>();
-	this.hairColor0 = new Color32(msg.ReadByte(), msg.ReadByte(), msg.ReadByte(), 1);
-	this.hairColor1 = new Color32(msg.ReadByte(), msg.ReadByte(), msg.ReadByte(), 1);
-	this.bodyColor = new Color32(msg.ReadByte(), msg.ReadByte(), msg.ReadByte(), 1);
-	this.eyeColor = new Color32(msg.ReadByte(), msg.ReadByte(), msg.ReadByte(), 1);
-	this.hoofColor = new Color32(msg.ReadByte(), msg.ReadByte(), msg.ReadByte(), 1);
-	this.Mane = msg.ReadInt16();
-	this.Tail = msg.ReadInt16();
-	this.Eye = msg.ReadInt16();
-	this.Hoof = msg.ReadInt16();
-	this.BodySize = msg.ReadFloat();
+    this.name = msg.ReadString();
+    this.race = (CharacterType) msg.ReadByte();
+    this.gender = (Gender) msg.ReadByte();
+    this.CutieMarks = (from id in new int[] { msg.ReadInt32(), msg.ReadInt32(), msg.ReadInt32() } select StaticData.CutieMarks[id]).ToArray<CutieMark>();
+    this.hairColor0 = new Color32(msg.ReadByte(), msg.ReadByte(), msg.ReadByte(), 1);
+    this.hairColor1 = new Color32(msg.ReadByte(), msg.ReadByte(), msg.ReadByte(), 1);
+    this.bodyColor = new Color32(msg.ReadByte(), msg.ReadByte(), msg.ReadByte(), 1);
+    this.eyeColor = new Color32(msg.ReadByte(), msg.ReadByte(), msg.ReadByte(), 1);
+    this.hoofColor = new Color32(msg.ReadByte(), msg.ReadByte(), msg.ReadByte(), 1);
+    this.Mane = msg.ReadInt16();
+    this.Tail = msg.ReadInt16();
+    this.Eye = msg.ReadInt16();
+    this.Hoof = msg.ReadInt16();
+    this.BodySize = msg.ReadFloat();
+    this.HornSize = msg.ReadRangedSingle(0f, 2f, 0x10);
 }
-
+ 
 PonyData data = data2;
 INetSerializable[] args = new INetSerializable[] { new IntSerializer(this.selectedNetCharacter), data };
 Net.RPC(1, args);
@@ -463,6 +465,8 @@ ff ff e8 						BodyColor
 00 00							Eye
 00 00							Hoof
 00 00 80 3f						BodySize
+DF 69                           HornSize
+
 
 => Compare if the RCP stuff is always the same with different characters
 => When it's done make a Load/Save character interface that take QByteArrays, then you can read/write those with files
@@ -888,8 +892,7 @@ void sendEntitiesList2(Player& player)
     //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850032000000c842")); // Sends a 54
     //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850033010000c842")); // Sends a 54
     //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850032010000c842")); // Sends a 54
-    sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("8500c80a4d7564204f72616e676503034b000000000000000000000080c6ff9fd4fff2ff80df80ff85bf3401000900010000002e55693fdf69")); // Sends a 54
-
+    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("8500c80a4d7564204f72616e676503034b000000000000000000000080c6ff9fd4fff2ff80df80ff85bf3401000900010000002e55693fdf69")); // Sends a 54
     //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("8500050c0020000a000000")); // Sends a 54
     //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("8500c30300000000000000ffffff7f01000000ffffff7f05000000ffffff7f")); // Sends a 54
     //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850032000000c842")); // Sends a 54
@@ -897,3 +900,238 @@ void sendEntitiesList2(Player& player)
     //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850032010000c842")); // Sends a 54
     //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("850033010000c842")); // Sends a 54
 }
+
+=> Understanding the small 54s
+=> They are used to set a player's current/max stats
+=> 0x33 is for Max and 0x32 for Current
+850033000000c842
+850032000000c842
+850033010000c842
+850032010000c842
+
+85 00           View ID (2)
+33              RPC ID (1)
+00              Stat ID (1)
+00 00 c8 42     Stat Value (float) (4)
+
+=> Reverse of the medium sized 54s
+=> It sets the inventory of the player.
+==> THERE IS PROBABLY A BUFFER OVERFLOW VULNERABILITY HERE. For example if an Item's Index>MaxSize.
+8500050c0020000a000000
+
+
+Inventory (example with an empty one
+85 00           View ID (2)
+05              RPC ID (1)
+0c              MaxSize (1)
+00              Size (1)
+... Inventory items (9*Size)
+20              WornMaxSize (1)
+00              WornSize (1)
+... Worn inventory items (5*WornSize)
+0a 00 00 00     Bits (4)
+
+Inventory Items (example that I made up)
+01              Index (1)
+01 00 00 00     ItemID (4)
+02 00 00 00     Amount (4)
+
+Worn Inventory Items (example that I made up)
+01              Index (1)
+01 00 00 00     ItemID (4)
+
+public void OnDeserialize(NetIncomingMessage message)
+{
+    this.MaxSize = message.ReadByte();
+    byte num = message.ReadByte();
+    this.Items = new InventoryItem[this.MaxSize];
+    for (int i = 0; i < num; i++)
+    {
+        InventoryItem item = new InventoryItem();
+        byte index = message.ReadByte();
+        item.OnDeserialize(message);
+        this.Items[index] = item;
+    }
+    ItemArraySerializer serializer = new ItemArraySerializer();
+    serializer.OnDeserialize(message);
+    this.WornItems = serializer.Items;
+    this.Bits = message.ReadInt32();
+}
+
+=> Reversing of the last long 54
+=> It's used to set the player's skills
+8500c30300000000000000ffffff7f01000000ffffff7f05000000ffffff7f
+
+85 00           View ID (2)
+c3              RPC ID (1)
+03 00 00 00     Capacity (4)
+00 00 00 00     SkillID 1
+ff ff ff 7f     SkillLevelDef 1
+01 00 00 00     SkillID 2
+ff ff ff 7f     SkillLevelDef 2
+05 00 00 00     SkillID3
+ff ff ff 7f     SkillLevelDef3
+
+=> Turns out the 46 messages might not have been juts chat. We're still missing the skills bar and the rest of the GUI.
+
+=> Reversing the first 46
+=> This one is a chat message
+0f2a4262ae5248d048040000000a50696e6b696520506f6509616e64206f74686572a009000000
+0f                                  RPC ID (1)
+2a 42 62 ae 52 48 d0 48             Time (8)
+04 00 00 00                         ChatType (4)
+0a 50 69 6e 6b 69 65 20 50 6f 65    Name (String)
+09 61 6e 64 20 6f 74 68 65 72       Text (String)
+a0 09 00 00                         CharacterId (4)
+00                                  AccessLevel (1)
+
+=> Reversing the second 46
+=> Calls ProcessGroupRPC to add friends
+141500000000
+14              RPC ID (1)
+15              MagicNumber (always 0x15) (1)
+00 00 00 00     nFriends
+
+=> Reversing the third 46
+=> Calls ProcessJournal to add journal entries
+0e00000000
+0e              RPC ID (1)
+00 00 00 00     nEntries
+01 65           Text1 (String)           
+01 65           Text2 (String)
+
+=> You assign IDs and NetviewIDs starting from 1, using unique numbers.
+=> Create a Level database, for each level it must give a default spawn and a list of entities (mobs/npc) with their positions
+=> Create a NPC database, for each NPC it must give it's ponyData and possible interactions (unless they alreasy are in the client side)
+=> Understand the other RPC calls that are sent at startup and implement them (probably inventory, skills, ...)
+=> Fix the bug that prevents to disconnect/logout from the ingame menu.
+=> Write a BoF PoC for the inventory vuln.
+=> Fix the bug that makes the GUI/Chat/Skillsbar invisible. It worked yesterday when I was using the Orange Mud static data.
+==> On a screenshot at 21:24 yesterday the GUI workded. But when reusing the server compiled at 21:15 it's not working now.
+==> Maybe the GUI only works when we're connected to Internet ?
+===> Confirmed ! It only works when connected to Internet for some reason. Maybe a DLL hack could prevent this.
+====> Find the exact reason that makes Internet mandatory to enable the GUI (is it the DayNight thingy ?).
+=> Create a Vortex database, for each vortex it must give a Level name and destination rot/pos
+
+Vortexes list. The position is approximately were the vortex is supposed to send you. 
+LoadSpawn is the where you should land if you load this scene with the server console.
+==> Vortexes from PonyVille (LoadSpawn : x=-3.80378, y=-195.301, z=176.69)
+0a 00 01 RaritysBoutique
+09 00 01 Twilight's Library
+14 00 01 Sugarcube Corner
+02 00 01 GemMines x=45.0536, y=9.17758, z=-58.3287
+04 00 01 Everfree ? x=414.643, y=-0.484952, z=-12.4265
+08 00 01 Sweet Aples Acres ?  x=59.9794, y=-110.121, z=55.7187
+
+==> Vortexes from GemMines (LoadSpawn : x=45.0536, y=9.17758, z=-58.3287)
+03 00 01 PonyVille
+
+==> Voertexes from Everfree1 (LoadSpawn : x=414.643, y=-0.484952, z=-12.4265)
+02 00 01 PonyVille ?
+
+=> Vortexes from SweetAppleAcres (LoadSpawn : x=59.9794, y=-110.121, z=55.7187)
+02 00 01 PonyVille
+
+=> Vortexes from Tartarus (LoadSpawn : x=1768.52, y=612.011, z=1031.54)
+02 00 01 ???
+
+=> Find the procedure to load another scene with a vortex in the Cap files. Search for the vortex's ID
+==> In LoE2 (Big), packet 14317 client sends 56  00 00 18 00  03 00 01
+==> At 14326 the server ACK the 56 message
+==> At 14328 the server sends 481c0058000509506f6e7956696c6c65 (contains the string PonyVille) and  46540008000d (RPC 0x0D - EndDialog)
+==> Then the client is busy loading and nothing happens for some time except pings and chat messages
+==> At 14416 the client sends 48 16 00 08 00 06
+==> Then the server starts sending fucktons of messages containing "PlayerBase" at 14419, 14421 and 14423
+===> 14419
+48 1e00 6001 010a506c6179657242617365080000004cb71a42254643c3e72bca43000000001058393f00000000d7a330bf
+48 2000 6001 010a506c617965724261736509000000ee7c72c2bc7441c3b4a8014300000000560e0d3f000000000681553f
+48 2200 6001 010a506c61796572426173650a00000004f65cc30e4d43c310182a430000000096436b3f00000000713dcabe
+48 2400 6001 010a506c61796572426173650b00000098ee9842254643c36aacaf4300000000b6f31d3f00000000d578493f
+48 2600 6001 010a506c61796572426173650c000000f8d35ec3773e43c3cb418243000000001f852b3f00000000b6f33d3f
+48 2800 6001 010a506c61796572426173650d00000014ae2f40984e43c3acdc5b4300000000e5d0623f00000000560eedbe
+48 2a00 6001 010a506c61796572426173650e000000cdec69c3d34d43c35c8f234300000000a245363f0000000046b6333f
+48 2c00 6001 010a506c61796572426173650f000000b81e1fc1d34d43c3b4e85f43000000001b2f5d3f000000002506013f
+48 2e00 6001 010a506c6179657242617365100000002db272c3d34d43c3c1ea2843000000000c022b3f0000000052b83e3f
+48 3000 6001 010a506c617965724261736511000000000000c1bf4d43c30000aa430000000000000000000000000000803f
+48 3200 4801 0107546573744d6f621200000000000000000000000000000000000000000000000000000000000000
+48 3400 6001 010a506c6179657242617365130000002dd20fc3773e43c38f529643000000001283203f000000008b6c473f
+48 3600 6001 010a506c617965724261736514000000355e48421bef2dc329dc524200000000f6281c3f0000000083c04a3f
+48 3800 6001 010a506c6179657242617365150000009a1952421bef2dc35c0f554200000000b072483f00000000643b1fbf
+48 3a00 6001 010a506c617965724261736516000000f6283cc0d3ad42c3a63b434300000000a4703d3e00000000e3a57b3f
+48 3c00 6001 010a506c617965724261736560006e0007d4d3c14e4d43c390991544000000009166b03d00000000720c7f3f
+48 3e00 6001 010a506c617965724261736546005400f0d10d40524e43c32bd455430000000008590abe000000001ea77d3f
+48 4000 6001 010a506c61796572426173654000780028ea5dc3834d43c3758a29430000000065d849bc0000000007fb7f3f
+48 4200 6001 010a506c617965724261736545005a00bf0fc1c24b5b3cc3c3b84143000000009578cabe00000000f7216b3f
+48 4400 6001 010a506c61796572426173659f002b00bad576c2d54d43c3ddd4534300000000501f2a3f00000000ef4b3f3f
+48 4600 6001 010a506c61796572426173656e002a0066e671c3a54e43c39a991f430000000045c4063f00000000d3a7593f
+48 4800 6001 010a506c61796572426173655a006200fa176ec3774e43c32c542f4300000000da8c663f00000000e68dde3e
+48 4a00 6001 010a506c617965724261736574000a0052e13342a5052fc3160a7143000000009578cabe00000000f7216b3f
+48 4c00 6001 010a506c6179657242617365510061008259e8c09eb240c353cba84300000000e17144bf000000008e26243f
+48 4e00 6001 010a506c61796572426173658f006700d52c1ac35d4b43c3630ff44200000000af836dbe00000000b804793f
+48 5000 6001 010a506c617965724261736559001600c2932443a0449ac2ae492a4400000000256179bf00000000cb5f673e
+48 5200 6001 010a506c6179657242617365480009008d229942da5043c3f0c3af430000000014590a3e000000001ea77d3f
+48 5400 6001 010a506c617965724261736573001f00acf11442194e43c30b45c84300000000c2fe7fbf000000004ed9c93b
+
+===> 14423
+Type Header Header Data
+48 6e00 6001 010a506c6179657242617365a70055006fb486c295cf3dc396229543000000008a5b25bf00000000126e433f
+48 7000 6001 010a506c61796572426173657c005c0066e670c3333343c39a991f430000000045c4063f00000000d3a7593f
+48 7200 6001 010a506c61796572426173657500170070416bc317643ac38a85924300000000db4a4cbf0000000044461a3f
+48 7400 6001 010a506c6179657242617365420007002a5eeec25a7535c3bdaf9a430000000049277cbd00000000b3837f3f
+48 7600 6001 010a506c61796572426173654c006a007ec936c3a04d43c37fe4c34300000000ebe07fbf00000000f245fc3c
+48 7800 6001 010a506c6179657242617365650076006b8dbabf7d3043c3cf90444300000000509b7f3f000000000ef7623d
+48 7a00 6001 010a506c61796572426173657700190054da82c24c4e43c3d7764f43000000008c5b253f00000000106e433f
+48 7c00 6001 010a506c61796572426173657b002900d76a57c3c64f43c32d4e2d4300000000dd4a4c3f0000000041461a3f
+48 7e00 6001 010a506c61796572426173655c004a00a572e040daef2dc33c12374200000000cc1e3cbf00000000d2a02d3f
+48 8000 6001 010a506c61796572426173657f0079006e341c40340f3fc34b5b494300000000eec960bf000000007afff43e
+48 8200 6001 010a506c61796572426173656f005300a28a01c2364e43c31b320a4400000000a65a173d000000003ed37f3f
+48 8400 6001 010a506c6179657242617365680063006968994240a83bc344368043000000006af87c3f00000000ac121d3e
+48 8600 6001 010a506c61796572426173657900180017bb4d42a1ee2dc3ffd4574200000000353a76bf000000008e1d8c3e
+48 8800 6001 010a506c617965724261736571001e0082e499c2f6153fc358f8964300000000346d74bf00000000ac34983e
+48 8a00 6001 010a506c617965724261736534005700a2e41bc2b53c3cc3d412ea430000000065d849bc0000000007fb7f3f
+48 8c00 6001 010a506c61796572426173653a003800f7de77c24cb841c3ac6396430000000077c06bbf000000000392c73e
+48 8e00 6001 010a506c617965724261736586004c00f9665bc3f94c43c35f9f094300000000a65a173d000000003ed37f3f
+48 9000 6001 010a506c617965724261736576004400382909c2c7123cc3859905440000000049277cbd00000000b3837f3f
+48 9200 6001 010a506c61796572426173658000420004963d42b8aa32c39ef49f4200000000fd987e3f00000000ef12d63d
+48 9400 6001 010a506c6179657242617365630047009f7298c33c4d43c3153f5f4300000000cc56333f0000000026af363f
+48 9600 6001 010a506c61796572426173658a002600c91c98c3224d43c3766b5f4300000000cc56333f0000000026af363f
+48 9800 6001 010a506c6179657242617365840036000000f0c1cd4c42c300c019440000000065d849bc0000000007fb7f3f
+48 9a00 6001 010a506c617965724261736582000300cd4c08c366e642c39a19c143000000000000803f0000000000000000
+01 6002 7800 7500bd880946f473823b008f7f5a7f
+01 6202 7800 a700ee8809468c7c423b448f7f637f
+01 6402 6800 71000a8909460e7c2a3b758f4c
+01 6602 7800 7300218a0946e781db3a81947f407f
+01 6802 6800 3b00f28809465f83153b3e8c8f
+01 6a02 6800 6300188909466970db3a6d8b9f
+01 6c02 7800 6a001a8909468d7a953bf2887f447f
+01 6e02 6800 8000608909466e82133c1584bb
+01 7002 6800 4c0046890946a376db3a0e9441
+01 7202 7800 a10031890946757f3d3bd1a07f4c7f
+01 7402 6800 6d0009890946517b653bad8c75
+01 7602 6800 a0003d890946b185f53ae78cb3
+01 7802 6800 6f001b890946577edb3a4c9c81
+
+==> At 14425 the server sends some 54s
+Type Header Header RPCID Data
+54 6a02 4000 3400 320135cd9641
+54 6c02 4000 3b00 3201c5a9af42
+54 6e02 4000 4200 3201b10eaf42
+54 7002 4000 4500 32015097db42
+54 7202 4000 4c00 3201248ed142
+54 7402 4000 6800 320102594642
+54 7602 4000 6a00 320144159742
+54 7802 4000 7300 3201a59f9e42
+54 7a02 4000 7700 32011597bc42
+54 7c02 4000 7900 3201c0035642
+54 7e02 4000 7b00 32010589cc42
+54 8002 4000 8000 3201d58a1b42
+54 8202 4000 a000 3201248ed142
+01 7a02 7800 4200 4c890946e579de3bd68f7f7d7f
+01 7c02 7800 7600 318909463d7e623b649b7f7d7f
+01 7e02 6800 5c00 4b89094652806b3c56825e
+01 8002 6800 7700 30890946a57cdb3a9e8a9c
+01 8202 6800 4500 20890946097b5e3bef896f
+01 8402 6800 8700 488909461276d93ad68174
+
+=> Sometimes load works, often it works with GemMines but not with RaritysBoutique or PonyVille
+===> Redoing instantiate + loadPonyData manually after load Everfree1 fixed the failed load. Maybe we should try again until we gain confirmation ?zzzzzzzzz

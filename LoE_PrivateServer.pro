@@ -28,3 +28,5 @@ FORMS    += widget.ui
 
 RESOURCES += \
 	gameFiles.qrc
+
+QMAKE_CXXFLAGS += -O0

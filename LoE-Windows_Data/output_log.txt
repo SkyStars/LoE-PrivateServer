@@ -7,58 +7,58 @@ Direct3D:
     VRAM:     2188 MB (via DXGI)
     Caps:     Shader=30 DepthRT=1 NativeDepth=1 NativeShadow=1 DF16=1 DF24=1 INTZ=1 RAWZ=0 NULL=1 RESZ=1 SlowINTZ=1
 Begin MonoManager ReloadAssembly
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\UnityEngine.dll (this message is harmless)
-Loading C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\UnityEngine.dll into Unity Child Domain
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\Assembly-CSharp-firstpass.dll (this message is harmless)
-Loading C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\Assembly-CSharp-firstpass.dll into Unity Child Domain
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\Assembly-CSharp.dll (this message is harmless)
-Loading C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\Assembly-UnityScript-firstpass.dll (this message is harmless)
-Loading C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\Assembly-UnityScript-firstpass.dll into Unity Child Domain
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\Assembly-UnityScript.dll (this message is harmless)
-Loading C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\Assembly-UnityScript.dll into Unity Child Domain
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\Ionic.Zlib.dll (this message is harmless)
-Loading C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\Ionic.Zlib.dll into Unity Child Domain
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\Athena.dll (this message is harmless)
-Loading C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\Athena.dll into Unity Child Domain
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\CGS.Unity.dll (this message is harmless)
-Loading C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\CGS.Unity.dll into Unity Child Domain
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\DecalSystem.Runtime.dll (this message is harmless)
-Loading C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\DecalSystem.Runtime.dll into Unity Child Domain
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\INIFileParser.dll (this message is harmless)
-Loading C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\INIFileParser.dll into Unity Child Domain
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\LegendsOfEquestria.Data.dll (this message is harmless)
-Loading C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\LegendsOfEquestria.Data.dll into Unity Child Domain
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\LegendsOfEquestria.Shared.dll (this message is harmless)
-Loading C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\LegendsOfEquestria.Shared.dll into Unity Child Domain
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\Lidgren.Network.dll (this message is harmless)
-Loading C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\Lidgren.Network.dll into Unity Child Domain
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\PNet.dll (this message is harmless)
-Loading C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\PNet.dll into Unity Child Domain
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\PNetU.dll (this message is harmless)
-Loading C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\PNetU.dll into Unity Child Domain
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\csogg.dll (this message is harmless)
-Loading C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\csogg.dll into Unity Child Domain
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\csvorbis.dll (this message is harmless)
-Loading C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\csvorbis.dll into Unity Child Domain
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\OggDecoder.dll (this message is harmless)
-Loading C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\OggDecoder.dll into Unity Child Domain
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\UnityExtensions.dll (this message is harmless)
-Loading C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\UnityExtensions.dll into Unity Child Domain
-- Completed reload, in  0.359 seconds
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\Assembly-CSharp-firstpass.dll (this message is harmless)
+Loading C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\Assembly-CSharp-firstpass.dll into Unity Child Domain
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\Assembly-UnityScript-firstpass.dll (this message is harmless)
+Loading C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\Assembly-UnityScript-firstpass.dll into Unity Child Domain
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\Assembly-UnityScript.dll (this message is harmless)
+Loading C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\Assembly-UnityScript.dll into Unity Child Domain
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\Ionic.Zlib.dll (this message is harmless)
+Loading C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\Ionic.Zlib.dll into Unity Child Domain
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\Athena.dll (this message is harmless)
+Loading C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\Athena.dll into Unity Child Domain
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\CGS.Unity.dll (this message is harmless)
+Loading C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\CGS.Unity.dll into Unity Child Domain
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\DecalSystem.Runtime.dll (this message is harmless)
+Loading C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\DecalSystem.Runtime.dll into Unity Child Domain
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\INIFileParser.dll (this message is harmless)
+Loading C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\INIFileParser.dll into Unity Child Domain
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\LegendsOfEquestria.Data.dll (this message is harmless)
+Loading C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\LegendsOfEquestria.Data.dll into Unity Child Domain
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\LegendsOfEquestria.Shared.dll (this message is harmless)
+Loading C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\LegendsOfEquestria.Shared.dll into Unity Child Domain
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\Lidgren.Network.dll (this message is harmless)
+Loading C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\Lidgren.Network.dll into Unity Child Domain
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\PNet.dll (this message is harmless)
+Loading C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\PNet.dll into Unity Child Domain
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\PNetU.dll (this message is harmless)
+Loading C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\PNetU.dll into Unity Child Domain
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\csogg.dll (this message is harmless)
+Loading C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\csogg.dll into Unity Child Domain
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\csvorbis.dll (this message is harmless)
+Loading C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\csvorbis.dll into Unity Child Domain
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\OggDecoder.dll (this message is harmless)
+Loading C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\OggDecoder.dll into Unity Child Domain
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\UnityExtensions.dll (this message is harmless)
+Loading C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\UnityExtensions.dll into Unity Child Domain
+- Completed reload, in  0.611 seconds
 <RI> Initializing input.
 <RI> Input initialized.
 desktop: 1600x900 60Hz; virtual: 1600x900 at 0,0
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\System.Core.dll (this message is harmless)
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\System.dll (this message is harmless)
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\UnityScript.Lang.dll (this message is harmless)
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\Boo.Lang.dll (this message is harmless)
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\System.Core.dll (this message is harmless)
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\System.dll (this message is harmless)
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\UnityScript.Lang.dll (this message is harmless)
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\Boo.Lang.dll (this message is harmless)
 [Net Status] Disconnected
  
 (Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
 
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\System.Xml.dll (this message is harmless)
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\System.Configuration.dll (this message is harmless)
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\System.Configuration.dll (this message is harmless)
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\System.Xml.dll (this message is harmless)
 Setting quality
  
 (Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
@@ -70,6 +70,14 @@ Setting quality
 Clicked
  
 (Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
+
+ArgumentOutOfRangeException: Argument is out of range.
+Parameter name: index
+  at System.Collections.Generic.List`1[UnityEngine.AudioClip].get_Item (Int32 index) [0x00000] in <filename unknown>:0 
+  at MusicManager.playRandomSceneMusic () [0x00000] in <filename unknown>:0 
+  at MusicManager.Update () [0x00000] in <filename unknown>:0 
+ 
+(Filename:  Line: -1)
 
 Game Access: 1
  
@@ -90,7 +98,7 @@ Local (192.168.1.50: 80)
 Unloading 6 Unused Serialized files (Serialized files now loaded: 0 / Dirty serialized files: 0)
 
 Unloading 64 unused Assets to reduce memory usage. Loaded Objects now: 414.
-Total: 9.245018 ms (FindLiveObjects: 0.094919 ms CreateObjectMapping: 0.051307 ms MarkObjects: 5.848444 ms  DeleteObjects: 0.302074 ms)
+Total: 10.303883 ms (FindLiveObjects: 0.174446 ms CreateObjectMapping: 0.690089 ms MarkObjects: 5.561762 ms  DeleteObjects: 0.296943 ms)
 
 Setting quality
  
@@ -121,7 +129,7 @@ The tree GrassSprig must use the Nature/Soft Occlusion shader. Otherwise billboa
  
 (Filename:  Line: 78)
 
-Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE_PrivateServer\LoE-Windows_Data\Managed\Mono.Security.dll (this message is harmless)
+Platform assembly: C:\Users\Tux\Documents\Dev\Projects\LoE-PrivateServer\LoE-Windows_Data\Managed\Mono.Security.dll (this message is harmless)
 False
  
 (Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
@@ -133,7 +141,7 @@ file default.script not found.
 Unloading 6 Unused Serialized files (Serialized files now loaded: 0 / Dirty serialized files: 0)
 
 Unloading 575 unused Assets to reduce memory usage. Loaded Objects now: 32559.
-Total: 76.889832 ms (FindLiveObjects: 8.120737 ms CreateObjectMapping: 0.903658 ms MarkObjects: 58.971226 ms  DeleteObjects: 6.693740 ms)
+Total: 116.297401 ms (FindLiveObjects: 9.863917 ms CreateObjectMapping: 0.774747 ms MarkObjects: 88.273735 ms  DeleteObjects: 14.039088 ms)
 
 Setting quality
  
@@ -143,233 +151,11 @@ Setting quality
  
 (Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
 
-Shader warmup: 40 shaders 317 combinations 0.049s
+Shader warmup: 40 shaders 317 combinations 0.015s
 Finished instantiation, sending ack
  
 (Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
 
-[Net Status] Disconnected
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Unloading 6 Unused Serialized files (Serialized files now loaded: 0 / Dirty serialized files: 0)
-
-Unloading 1028 unused Assets to reduce memory usage. Loaded Objects now: 808.
-Total: 168.194565 ms (FindLiveObjects: 0.414310 ms CreateObjectMapping: 0.534242 ms MarkObjects: 8.830709 ms  DeleteObjects: 156.170593 ms)
-
-Setting quality
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Setting quality
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Shader warmup: 26 shaders 240 combinations 0.002s
-Clicked
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Game Access: 1
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-authenticated. session key 26a5a658e06d1145f8555420ed16c2faefc8ed71e9d9f3039f06d43133ded18579dd31d5
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Local (192.168.1.50: 80)
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Loopback (127.0.0.1: 80)
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Unloading 3 Unused Serialized files (Serialized files now loaded: 0 / Dirty serialized files: 0)
-
-Unloading 60 unused Assets to reduce memory usage. Loaded Objects now: 713.
-Total: 11.651353 ms (FindLiveObjects: 0.080809 ms CreateObjectMapping: 0.169315 ms MarkObjects: 8.878809 ms  DeleteObjects: 0.382884 ms)
-
-Setting quality
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Setting quality
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Shader warmup: 23 shaders 222 combinations 0.001s
-got 2 ponies
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-horn size: 1.092577
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-disabling locomotion animation behaviour as it can't find the appropriate transform
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-doing save
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-The tree GrassSprig must use the Nature/Soft Occlusion shader. Otherwise billboarding/lighting will not work correctly.
- 
-(Filename:  Line: 78)
-
-False
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-file default.script not found.
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Unloading 5 Unused Serialized files (Serialized files now loaded: 0 / Dirty serialized files: 0)
-
-Unloading 407 unused Assets to reduce memory usage. Loaded Objects now: 32813.
-Total: 80.824486 ms (FindLiveObjects: 7.847523 ms CreateObjectMapping: 0.706764 ms MarkObjects: 65.820175 ms  DeleteObjects: 4.236097 ms)
-
-Setting quality
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Setting quality
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Shader warmup: 46 shaders 412 combinations 0.013s
-System.ArgumentOutOfRangeException: Index was out of range. Must be non-negative and less than the size of the collection.
-Parameter name: startIndex
-  at System.BitConverter.PutBytes (System.Byte* dst, System.Byte[] src, Int32 start_index, Int32 count) [0x00000] in <filename unknown>:0 
-  at System.BitConverter.ToSingle (System.Byte[] value, Int32 startIndex) [0x00000] in <filename unknown>:0 
-  at Lidgren.Network.NetBuffer.ReadSingle () [0x00000] in <filename unknown>:0 
-  at Lidgren.Network.NetBuffer.ReadFloat () [0x00000] in <filename unknown>:0 
-  at PNetU.QuaternionSerializer.Deserialize (Lidgren.Network.NetIncomingMessage message) [0x00000] in <filename unknown>:0 
-  at PNetU.Net.ProcessUtils (Lidgren.Network.NetIncomingMessage msg) [0x00000] in <filename unknown>:0 
-  at PNetU.Net.Consume (Lidgren.Network.NetIncomingMessage msg) [0x00000] in <filename unknown>:0 
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-[Net Status] Disconnected
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Unloading 3 Unused Serialized files (Serialized files now loaded: 0 / Dirty serialized files: 0)
-
-Unloading 699 unused Assets to reduce memory usage. Loaded Objects now: 888.
-Total: 30.592899 ms (FindLiveObjects: 1.644414 ms CreateObjectMapping: 0.361719 ms MarkObjects: 14.367458 ms  DeleteObjects: 11.976516 ms)
-
-Setting quality
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Setting quality
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Shader warmup: 32 shaders 292 combinations 0.002s
-Clicked
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Game Access: 1
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-authenticated. session key 26a5a658e06d1145f8555420ed16c2faefc8ed71e9d9f3039f06d43133ded18579dd31d5
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Local (192.168.1.50: 80)
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Loopback (127.0.0.1: 80)
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Unloading 3 Unused Serialized files (Serialized files now loaded: 0 / Dirty serialized files: 0)
-
-Unloading 132 unused Assets to reduce memory usage. Loaded Objects now: 719.
-Total: 89.580803 ms (FindLiveObjects: 0.164184 ms CreateObjectMapping: 0.180859 ms MarkObjects: 12.131721 ms  DeleteObjects: 74.935638 ms)
-
-Setting quality
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Setting quality
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Shader warmup: 25 shaders 239 combinations 0.001s
-got 2 ponies
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-horn size: 1.092577
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-disabling locomotion animation behaviour as it can't find the appropriate transform
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-doing save
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-The tree GrassSprig must use the Nature/Soft Occlusion shader. Otherwise billboarding/lighting will not work correctly.
- 
-(Filename:  Line: 78)
-
-False
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-file default.script not found.
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Unloading 5 Unused Serialized files (Serialized files now loaded: 0 / Dirty serialized files: 0)
-
-Unloading 408 unused Assets to reduce memory usage. Loaded Objects now: 32812.
-Total: 110.631104 ms (FindLiveObjects: 9.450891 ms CreateObjectMapping: 0.674055 ms MarkObjects: 91.799866 ms  DeleteObjects: 4.586914 ms)
-
-Setting quality
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Setting quality
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Shader warmup: 47 shaders 413 combinations 0.022s
-Finished instantiation, sending ack
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-[Net Status] Disconnected
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Unloading 4 Unused Serialized files (Serialized files now loaded: 0 / Dirty serialized files: 0)
-
-Unloading 954 unused Assets to reduce memory usage. Loaded Objects now: 893.
-Total: 90.403008 ms (FindLiveObjects: 0.393787 ms CreateObjectMapping: 0.374546 ms MarkObjects: 17.055984 ms  DeleteObjects: 61.162071 ms)
-
-Setting quality
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Setting quality
- 
-(Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)
-
-Shader warmup: 34 shaders 294 combinations 0.002s
 [Net Status] Disconnected
  
 (Filename: C:/BuildAgent/work/7535de4ca26c26ac/Runtime/ExportGenerated/StandalonePlayer/UnityEngineDebug.cpp Line: 54)

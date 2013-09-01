@@ -1,0 +1,47 @@
+Describes the different network messages.
+The header (AAAA BBBB with AAAA=packet number and BBBB=payload size) of the messages is always skipped. 
+For example the packet 5600001800030001 will be noted 56 03 00 01
+
+81 Ping
+82 Pong
+87 Disconnect
+86 Acknowledge
+
+01 XXXX Position/rotation synchronization. Payload can be 0x68 or 0x78 bytes. XXXX = NetviewId.
+
+46 Reliable messages, often RPC calls to network views
+46 01 Send a player's ponies list (at the character screen) (GetPonies)
+46 0B BeginDialog
+46 0C SetDialogOptions
+46 0D EndDialog
+46 0E ProcessJournals
+46 0F Chat message
+46 11 SetDialogMessage
+46 14 ProcessGroupRPC
+46 28 TimeFromServer
+46 35 AddNavNode
+46 37 ReceiveFullNav
+46 39 GotNavPath
+46 3C ReceiveFullPBT
+46 3E ReceivePBTTypes
+46 3F ReceiveResourcePBTs
+46 7F Error 
+46 C9 Announcment
+46 CB Rename
+46 CE Teleport
+46 D2 ProcessUtils
+
+48 Reliable messages, often RPC calls to network views
+48 01 Instantiate prefab model (often PlayerBase)
+48 02 Remove netview (?)
+48 03 Do nothing. Function returns immediatly.
+48 04 Set player ID
+48 05 Load a scene
+48 0A ???
+
+54 XXXX Reliable messages, often RPC calls to network views. XXXX = NetviewId.
+54 XXXX 32 AA BBBBBBBBB Set status AA's value to BBBBBBBBB.
+54 XXXX 33 AA BBBBBBBBB Set status AA's max value to BBBBBBBBB.
+54 XXXX C3 ... Set skills
+54 XXXX 05 ... Set inventory
+54 XXXX C8 ... Sends ponyData to instantiate player
