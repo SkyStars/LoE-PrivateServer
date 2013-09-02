@@ -17,12 +17,16 @@ SOURCES += main.cpp\
 	messages.cpp \
 	utils.cpp \
 	pingTimeout.cpp \
-	character.cpp
+	character.cpp \
+    scene.cpp \
+    dataType.cpp
 
 HEADERS  += widget.h \
 	character.h \
 	message.h \
-	utils.h
+	utils.h \
+    scene.h \
+    dataType.h
 
 FORMS    += widget.ui
 

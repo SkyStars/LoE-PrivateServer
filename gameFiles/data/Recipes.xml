@@ -1,8 +1,0 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
-<ArrayOfRecipe xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <Recipe>
-	<ID>42</ID>
-    <Name>Fruit Salad</Name>
-    <Reagents></Reagents>
-  </Recipe>
-</ArrayOfRecipe>

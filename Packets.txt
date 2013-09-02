@@ -4,8 +4,11 @@ For example the packet 5600001800030001 will be noted 56 03 00 01
 
 81 Ping
 82 Pong
+83 Connection syn
+84 Connection syn|ack
+85 Connection ack
+86 Data ack
 87 Disconnect
-86 Acknowledge
 
 01 XXXX Position/rotation synchronization. Payload can be 0x68 or 0x78 bytes. XXXX = NetviewId.
 
@@ -42,6 +45,6 @@ For example the packet 5600001800030001 will be noted 56 03 00 01
 54 XXXX Reliable messages, often RPC calls to network views. XXXX = NetviewId.
 54 XXXX 32 AA BBBBBBBBB Set status AA's value to BBBBBBBBB.
 54 XXXX 33 AA BBBBBBBBB Set status AA's max value to BBBBBBBBB.
-54 XXXX C3 ... Set skills
 54 XXXX 05 ... Set inventory
+54 XXXX C3 ... Set skills
 54 XXXX C8 ... Sends ponyData to instantiate player

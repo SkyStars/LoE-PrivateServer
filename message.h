@@ -21,6 +21,7 @@ enum MessageTypes {
     MsgUserReliableOrdered5 = 0x47,
     MsgUserReliableOrdered6 = 0x48,
     MsgUserReliableOrdered18 = 0x54,
+    MsgUserReliableOrdered20 = 0x56,
     MsgUserReliableOrdered32 = 0x62
 };
 
@@ -40,11 +41,14 @@ void sendMessage(Player& player, quint8 messageType, QByteArray data=QByteArray(
 void sendEntitiesList(Player& player);
 void sendEntitiesList2(Player& player);
 void sendPonies(Player& player);
+void sendPonyData(Player& player);
 void sendNetviewInstantiate(Player& player, QString key, quint16 ViewId, quint16 OwnerId, UVector pos, UQuaternion rot);
 void sendNetviewInstantiate(Player& player);
 void sendSetStatRPC(Player& player, quint8 statId, float value);
 void sendSetMaxStatRPC(Player& player, quint8 statId, float value);
 void sendInventoryRPC(Player& player, QList<InventoryItem> inv, QList<WearableItem> worn, quint32 nBits);
 void sendSkillsRPC(Player& player, QList<QPair<quint32, quint32> > skills);
+void sendLoadSceneRPC(Player& player, QString sceneName);
+void sendLoadSceneRPC(Player& player, QString sceneName, UVector pos);
 
 #endif // MESSAGE_H

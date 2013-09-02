@@ -1,8 +1,0 @@
-HTTP/1.1 304 Not Modified
-Server: nginx
-Date: Fri, 21 Jun 2013 23:08:36 GMT
-Connection: keep-alive
-Expires: Fri, 05 Jul 3013 23:08:36 GMT
-Cache-Control: max-age=1209600
-Vary: Accept-Encoding,User-Agent
-

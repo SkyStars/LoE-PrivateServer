@@ -1000,41 +1000,6 @@ a0 09 00 00                         CharacterId (4)
 01 65           Text1 (String)           
 01 65           Text2 (String)
 
-=> You assign IDs and NetviewIDs starting from 1, using unique numbers.
-=> Create a Level database, for each level it must give a default spawn and a list of entities (mobs/npc) with their positions
-=> Create a NPC database, for each NPC it must give it's ponyData and possible interactions (unless they alreasy are in the client side)
-=> Understand the other RPC calls that are sent at startup and implement them (probably inventory, skills, ...)
-=> Fix the bug that prevents to disconnect/logout from the ingame menu.
-=> Write a BoF PoC for the inventory vuln.
-=> Fix the bug that makes the GUI/Chat/Skillsbar invisible. It worked yesterday when I was using the Orange Mud static data.
-==> On a screenshot at 21:24 yesterday the GUI workded. But when reusing the server compiled at 21:15 it's not working now.
-==> Maybe the GUI only works when we're connected to Internet ?
-===> Confirmed ! It only works when connected to Internet for some reason. Maybe a DLL hack could prevent this.
-====> Find the exact reason that makes Internet mandatory to enable the GUI (is it the DayNight thingy ?).
-=> Create a Vortex database, for each vortex it must give a Level name and destination rot/pos
-
-Vortexes list. The position is approximately were the vortex is supposed to send you. 
-LoadSpawn is the where you should land if you load this scene with the server console.
-==> Vortexes from PonyVille (LoadSpawn : x=-3.80378, y=-195.301, z=176.69)
-0a 00 01 RaritysBoutique
-09 00 01 Twilight's Library
-14 00 01 Sugarcube Corner
-02 00 01 GemMines x=45.0536, y=9.17758, z=-58.3287
-04 00 01 Everfree ? x=414.643, y=-0.484952, z=-12.4265
-08 00 01 Sweet Aples Acres ?  x=59.9794, y=-110.121, z=55.7187
-
-==> Vortexes from GemMines (LoadSpawn : x=45.0536, y=9.17758, z=-58.3287)
-03 00 01 PonyVille
-
-==> Voertexes from Everfree1 (LoadSpawn : x=414.643, y=-0.484952, z=-12.4265)
-02 00 01 PonyVille ?
-
-=> Vortexes from SweetAppleAcres (LoadSpawn : x=59.9794, y=-110.121, z=55.7187)
-02 00 01 PonyVille
-
-=> Vortexes from Tartarus (LoadSpawn : x=1768.52, y=612.011, z=1031.54)
-02 00 01 ???
-
 => Find the procedure to load another scene with a vortex in the Cap files. Search for the vortex's ID
 ==> In LoE2 (Big), packet 14317 client sends 56  00 00 18 00  03 00 01
 ==> At 14326 the server ACK the 56 message
@@ -1134,4 +1099,87 @@ Type Header Header RPCID Data
 01 8402 6800 8700 488909461276d93ad68174
 
 => Sometimes load works, often it works with GemMines but not with RaritysBoutique or PonyVille
-===> Redoing instantiate + loadPonyData manually after load Everfree1 fixed the failed load. Maybe we should try again until we gain confirmation ?zzzzzzzzz
+===> Redoing instantiate + loadPonyData manually after load Everfree1 fixed the failed load. Maybe we should try again until we gain confirmation ?
+====> Fixed by the sequence number bugfix
+
+=> Replay of LoE11 instantiate sequence
+=> Client selected character, server sent scene (RaritysBoutique)
+=> 76 ref, client sends 48 06
+=> 79 +0.15s, server sends PlayerBase
+=> 81 ref, client sends 48 08 85 00
+=> 82 +0.14s, server sends 54 messages
+=> 84 +0.16s, server sends more 54 messages
+=> End of sequence, start exchanging some 01s
+
+=> 82 
+86 0000 1800 480200 
+54 0000 4000 8500 33000000c842
+54 0200 4000 8500 32000000c842
+54 0400 4000 8500 33010000c842
+54 0600 4000 8500 32010000c842
+54 0800 c801 8500 c80a4d7564204f72616e676501034b000000000000000000000080c6ff9fd4fff2ff80df80ff85bf3401000900010000002e55693fdf69
+
+=> 84
+54 0a00 5800 8500 050c0020000a000000
+54 0c00 f800 8500 c30300000000000000ffffff7f01000000ffffff7f05000000ffffff7f
+54 0e00 4000 8500 32000000c842
+54 1000 4000 8500 33000000c842
+54 1200 4000 8500 32010000c842
+54 1400 4000 8500 33010000c842
+
+=> We have a problem. When you use sendMessage with an outdated Player& you can end up sending different messages with the same ID, and only the first one will be received. We need to refresh the sequence number before sending messages
+==> Fixed by using a direct refreshed reference for sequence number I/O
+
+Vortexes list. The position is approximately were the vortex is supposed to send you. 
+LoadSpawn is the where you should land if you load this scene with the server console.
+==> Vortexes from PonyVille (LoadSpawn : x=-3.80378, y=-195.301, z=176.69)
+0a 00 01 RaritysBoutique x=29.5463, y=-1.16745, z=-60.4687
+09 00 01 Twilight's Library
+14 00 01 SugarCubeCorner x=6.83888, y=-0.0569049, z=1.99048
+02 00 01 GemMines x=45.0536, y=9.17758, z=-58.3287
+04 00 01 Everfree1 ? x=414.643, y=-0.484952, z=-12.4265
+08 00 01 SweetAppleAcres ?  x=59.9794, y=-110.121, z=55.7187
+03 00 01 Canterlot -57.108 9.66022 -182.363
+
+==> Vortexes from GemMines (LoadSpawn : x=45.0536, y=9.17758, z=-58.3287)
+03 00 01 PonyVille  x=-135.361, y=-195.303, z=380.023
+
+==> Voertexes from Everfree1 (LoadSpawn : x=414.643, y=-0.484952, z=-12.4265)
+02 00 01 PonyVille x=-211.408, y=-195.303, z=83.3914
+
+=> Vortexes from SweetAppleAcres (LoadSpawn : x=59.9794, y=-110.121, z=55.7187)
+02 00 01 PonyVille x=-321.083, y=-195.303, z=223.741
+
+=> Vortexes from Tartarus (LoadSpawn : x=1768.52, y=612.011, z=1031.54)
+02 00 01 ???
+
+=> Vortexes from Canterlot (LoadSpawn : x=-32.4926, y=-194.285, z=615.316)
+01 00 01 PonyVille x=-32.4209, y=-194.285, z=615.524
+
+=> Vortexes from SugarCubeCorner (LoadSpawn : x=6.83888, y=-0.0569049, z=1.99048)
+02 00 01 PonyVille x=-4.76804, y=-195.303, z=346.021
+
+=> Vortexes from RaritysBoutique (LoadSpawn : x=29.5463, y=-1.16745, z=-60.4687)
+01 00 01 PonyVille x=51.3338, y=-173.934, z=53.5291
+
+=> Fix the bug that makes the GUI/Chat/Skillsbar invisible. It worked yesterday when I was using the Orange Mud static data.
+==> On a screenshot at 21:24 yesterday the GUI workded. But when reusing the server compiled at 21:15 it's not working now.
+==> Maybe the GUI only works when we're connected to Internet ?
+===> Confirmed ! It only works when connected to Internet for some reason. Maybe a DLL hack could prevent this.
+====> Find the exact reason that makes Internet mandatory to enable the GUI (is it the DayNight thingy ?).
+
+=> Create a Vortex database, for each Scene name it must give the default spawn point and all the vortexes with their destination rot/pos
+==> The spawn is always id 00 (unless it is possible to have a real vortex with id 00) and is the name of the .dat
+==> Create two load functions, one that send to the default spawn and one that lets you choose the destination pos/rot
+==> Then when called load refers to the database to find the default spawn, and when taking a vortex to load the right place
+===> Start testing with PonyVille.dat
+
+=> You assign IDs and NetviewIDs starting from 1, using unique numbers.
+=> Create a Level database, for each level it must give a list of entities (mobs/npc) with their positions
+=> Create a NPC database, for each NPC it must give it's ponyData and possible interactions (unless they alreasy are in the client side)
+=> Understand the other RPC calls that are sent at startup and implement them (probably inventory, skills, ...)
+=> Fix the bug that prevents to disconnect/logout from the ingame menu.
+=> Write a BoF PoC for the inventory vuln.
+=> Check the scene names case-insensitively
+=> Implement vortex auto-teleportation, test with the GemMines' vortex first 56 0200 1800 030001
+=> Implement Rot

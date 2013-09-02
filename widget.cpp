@@ -85,6 +85,62 @@ void Widget::startServer()
     tcpClientsList.clear();
     startTimestamp=GetTickCount(); // GetTickCount:Nombre de millisecondes depuis le boot (up to 47+ days)
 
+    // Read vortex DB
+    if (enableGameServer)
+    {
+        bool corrupted=false;
+        QDir vortexDir("data/vortex/");
+        QStringList files = vortexDir.entryList(QDir::Files);
+        int nVortex=0;
+        for (int i=0; i<files.size(); i++)
+        {
+            Scene scene(files[i].split('.')[0]);
+
+            QFile file("data/vortex/"+files[i]);
+            if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+            {
+                logStatusMessage("Error reading vortex DB");
+                return;
+            }
+            QByteArray data = file.readAll();
+            QList<QByteArray> lines = data.split('\n');
+            for (int j=0; j<lines.size(); j++)
+            {
+                nVortex++;
+                Vortex vortex;
+                bool ok1, ok2, ok3, ok4;
+                QList<QByteArray> elems = lines[j].split(' ');
+                if (elems.size() != 5)
+                {
+                    logStatusMessage("Vortex DB is corrupted. Incorrect line, file " + files[i]);
+                    corrupted=true;
+                    break;
+                }
+                vortex.id = elems[0].toInt(&ok1, 16);
+                vortex.destName = elems[1];
+                vortex.destPos.x = elems[2].toFloat(&ok2);
+                vortex.destPos.y = elems[3].toFloat(&ok3);
+                vortex.destPos.z = elems[4].toFloat(&ok4);
+                if (!(ok1&&ok2&&ok3&&ok4))
+                {
+                    logStatusMessage("Vortex DB is corrupted. Conversion failed, file " + files[i]);
+                    corrupted=true;
+                    break;
+                }
+                scene.vortexes << vortex;
+            }
+            scenes << scene;
+        }
+
+        if (corrupted)
+        {
+            stopServer();
+            return;
+        }
+
+        logMessage("Loaded " + QString().setNum(nVortex) + " vortex in " + QString().setNum(scenes.size()) + " scenes");
+    }
+
     // TCP server
     if (enableLoginServer)
     {
@@ -225,11 +281,7 @@ void Widget::sendCmdLine()
     else if (str.startsWith("load"))
     {
         str = str.right(str.size()-5);
-        logMessage(QString("UDP : Loading level ").append(str));
-        QByteArray data(1,5);
-        data += stringToData(str);
-
-        sendMessage(cmdPeer,MsgUserReliableOrdered6,data);
+        sendLoadSceneRPC(cmdPeer, str);
     }
     else if (str.startsWith("getPos"))
     {

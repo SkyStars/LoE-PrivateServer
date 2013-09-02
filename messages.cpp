@@ -140,10 +140,17 @@ void receiveMessage(Player& player)
 
         win.logMessage(QString("UDP : Connecting ..."));
 
-        for (int i=0; i<32; i++) // Reset sequence counters
-            player.udpSequenceNumbers[i]=0;
+        Player &refresh = Player::findPlayer(win.udpPlayers, player.IP, player.port);
+        if (refresh.IP == "")
+        {
+            win.logMessage("Can't refresh player at connection, aborting");
+            return;
+        }
 
-        sendMessage(player, MsgConnectResponse, msg);
+        for (int i=0; i<32; i++) // Reset sequence counters
+            refresh.udpSequenceNumbers[i]=0;
+
+        sendMessage(refresh, MsgConnectResponse, msg);
     }
     else if ((unsigned char)msg[0] == MsgConnectionEstablished) // Connect ACK
     {
@@ -174,7 +181,19 @@ void receiveMessage(Player& player)
     }
     else if ((unsigned char)msg[0] == MsgAcknowledge) // Acknoledge
     {
-        win.logMessage("UDP : Message acknoledged");
+        int nAcks = (msg[3] + (msg[4]<<8)) / 24;
+        if (nAcks)
+        {
+            QString ackMsg = "UDP : Messages acknoledged (";
+            for (int i=0; i<nAcks; i++)
+            {
+                if (i)
+                    ackMsg += "/";
+                ackMsg+=msg.mid(3*i+5,3).toHex();
+            }
+            ackMsg += ")";
+            win.logMessage(ackMsg);
+        }
     }
     else if ((unsigned char)msg[0] == MsgDisconnect) // Disconnect
     {
@@ -194,11 +213,11 @@ void receiveMessage(Player& player)
         data[2] = msg[2]/2; // seq
         sendMessage(player, MsgAcknowledge, data);
 
-        if ((unsigned char)msg[0]==MsgUserReliableOrdered6 && (unsigned char)msg[3]==8 && (unsigned char)msg[4]==0 && (unsigned char)msg[5]==6 ) // Request player/mobs (entities) request
+        if ((unsigned char)msg[0]==MsgUserReliableOrdered6 && (unsigned char)msg[3]==8 && (unsigned char)msg[4]==0 && (unsigned char)msg[5]==6 ) // Prefab (player/mobs) list instantiate request
         {
             sendEntitiesList(player);
         }
-        else if ((unsigned char)msg[0]==MsgUserReliableOrdered6 && (unsigned char)msg[3]==0x18 && (unsigned char)msg[4]==0 && (unsigned char)msg[5]==8 ) // Request player/mobs (entities) request for reply 54
+        else if ((unsigned char)msg[0]==MsgUserReliableOrdered6 && (unsigned char)msg[3]==0x18 && (unsigned char)msg[4]==0 && (unsigned char)msg[5]==8 ) // Player game info (inv/ponyData/...) request
         {
             sendEntitiesList2(player);
         }
@@ -212,7 +231,7 @@ void receiveMessage(Player& player)
                 // Create the new pony for this player
                 pony.ponyData = ponyData;
                 pony.sceneName = "Ponyville";
-                pony.pos = UVector(-3.80378, -195.301, 176.69); // In front of the Town Hall
+                pony.pos = findVortex(pony.sceneName, 0).destPos;
                 ponies += pony;
             }
             else
@@ -227,16 +246,29 @@ void receiveMessage(Player& player)
 
             Player::savePonies(player, ponies);
 
-            win.logMessage(QString("UDP : Requesting scene"));
-            QByteArray data(1,5);
-            data += stringToData(player.pony.sceneName);
-            sendMessage(player,MsgUserReliableOrdered6,data); // Sends a 48
+            sendLoadSceneRPC(player, player.pony.sceneName, player.pony.pos);
 
             //Send the 46s
             win.logMessage(QString("UDP : Sending the 46 messages"));
 
             sendMessage(player,MsgUserReliableOrdered4,QByteArray::fromHex("141500000000")); // Sends a 46, init friends
             sendMessage(player,MsgUserReliableOrdered4,QByteArray::fromHex("0e00000000")); // Sends a 46, init journal
+        }
+        else if ((unsigned char)msg[0]==MsgUserReliableOrdered20 && (unsigned char)msg[3]==0x18 && (unsigned char)msg[4]==0) // Vortex messages
+        {
+            if (!player.loading)
+            {
+                quint8 id = msg[5];
+                Vortex vortex = findVortex(player.pony.sceneName, id);
+                if (vortex.destName.isEmpty())
+                {
+                    win.logMessage("Can't find vortex "+QString().setNum(id)+" on map "+player.pony.sceneName);
+                }
+                else
+                {
+                    sendLoadSceneRPC(player, vortex.destName, vortex.destPos);
+                }
+            }
         }
         else if ((unsigned char)msg[0]==MsgUserReliableOrdered4 && (unsigned char)msg[5]==0x2) // Delete pony request
         {
@@ -279,6 +311,14 @@ void receiveMessage(Player& player)
 
 void sendMessage(Player& player,quint8 messageType, QByteArray data)
 {
+    Player &refresh = Player::findPlayer(win.udpPlayers, player.IP, player.port);
+    if (refresh.IP == "")
+    {
+        win.logMessage("Can't refresh player before sendMessage, aborting");
+        return;
+    }
+    player = refresh;
+
     QByteArray msg(3,0);
     // MessageType
     msg[0] = messageType;
@@ -295,8 +335,8 @@ void sendMessage(Player& player,quint8 messageType, QByteArray data)
         msg[3] = 8;
         msg[4] = 0;
         // Ping number
-        player.lastPingNumber++;
-        msg[5]=player.lastPingNumber;
+        refresh.lastPingNumber++;
+        msg[5]=refresh.lastPingNumber;
     }
     else if (messageType == MsgPong)
     {
@@ -305,7 +345,7 @@ void sendMessage(Player& player,quint8 messageType, QByteArray data)
         msg[3] = 8*5;
         msg[4] = 0;
         // Ping number
-        msg[5]=player.lastPingNumber;
+        msg[5]=refresh.lastPingNumber;
         // Timestamp
         msg += floatToData(timestampNow());
     }
@@ -313,14 +353,15 @@ void sendMessage(Player& player,quint8 messageType, QByteArray data)
     {
         msg.resize(5);
         // Sequence
-        msg[1] = player.udpSequenceNumbers[messageType-MsgUserReliableOrdered1];
-        msg[2] = player.udpSequenceNumbers[messageType-MsgUserReliableOrdered1] >> 8;
+        msg[1] = refresh.udpSequenceNumbers[messageType-MsgUserReliableOrdered1];
+        msg[2] = refresh.udpSequenceNumbers[messageType-MsgUserReliableOrdered1] >> 8;
         // Payload size
         msg[3] = 8*(data.size());
         msg[4] = (8*(data.size())) >> 8;
         // strlen
         msg+=data;
-        player.udpSequenceNumbers[messageType-MsgUserReliableOrdered1] += 2;
+        refresh.udpSequenceNumbers[messageType-MsgUserReliableOrdered1] += 2;
+        //win.logMessage(QString("Sending message ")+msg.mid(0,3).toHex());
         //win.logMessage(QString("Sending data :")+msg.toHex());
     }
     else if (messageType == MsgAcknowledge)
@@ -407,16 +448,17 @@ void sendEntitiesList(Player& player)
 
     // Send the entities list if a new scene is loading
     win.logMessage(QString("UDP : Sending entities list"));
+    // Not loading anymore
+    Player &refresh = Player::findPlayer(win.udpPlayers, player.IP, player.port);
+    if (refresh.IP == "")
+    {
+        win.logMessage("Can't refresh player to remove loading status, aborting");
+        return;
+    }
+    if (!refresh.loading) // Only instantiate once
+        return;
+    refresh.loading = false;
     sendNetviewInstantiate(player);
-    //sendMessage(player, MsgUserReliableOrdered6, QByteArray::fromHex("010a506c6179657242617365850064007f45fd41be2195bf3e0e6ac200000000fd987ebf000000000f13d63d"));
-
-    // Sends the ponyData
-    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("8500c80a4d7564204f72616e676503034b000000000000000000000080c6ff9fd4fff2ff80df80ff85bf3401000900010000002e55693fdf69")); // Sends a 54
-    QByteArray data(3,0xC8);
-    data[0] = player.pony.netviewId;
-    data[1] = player.pony.netviewId>>8;
-    data += player.pony.ponyData;
-    sendMessage(player, MsgUserReliableOrdered18, data);
 }
 
 void sendEntitiesList2(Player& player)
@@ -434,6 +476,7 @@ void sendEntitiesList2(Player& player)
     sendSetMaxStatRPC(player, 1, 100);
     sendSetStatRPC(player, 1, 100);
 
+    sendPonyData(player);
 
 
     // Set inventory (always empty at the moment)
@@ -463,6 +506,9 @@ void sendEntitiesList2(Player& player)
 
 void receiveSync(Player& player, QByteArray data) // Receives the 01 updates from each players
 {
+    if (player.loading) // A sync message while loading would teleport use to a wrong position
+        return;
+
     // 5 and 6 are id and id>>8
     player.pony.pos.x = dataToFloat(data.right(data.size()  - 11));
     player.pony.pos.y = dataToFloat(data.right(data.size()  - 15));
@@ -578,4 +624,57 @@ void sendSkillsRPC(Player& player, QList<QPair<quint32, quint32> > skills)
         data += skills[i].second>>24;
     }
     sendMessage(player, MsgUserReliableOrdered18, data);
+}
+
+void sendPonyData(Player& player)
+{
+    // Sends the ponyData
+    win.logMessage(QString("UDP : Sending the ponyData"));
+    //sendMessage(player,MsgUserReliableOrdered18,QByteArray::fromHex("8500c80a4d7564204f72616e676503034b000000000000000000000080c6ff9fd4fff2ff80df80ff85bf3401000900010000002e55693fdf69")); // Sends a 54
+    QByteArray data(3,0xC8);
+    data[0] = player.pony.netviewId;
+    data[1] = player.pony.netviewId>>8;
+    data += player.pony.ponyData;
+    sendMessage(player, MsgUserReliableOrdered18, data);
+}
+
+void sendLoadSceneRPC(Player &player, QString sceneName) // Loads a scene and send to the default spawn
+{
+    win.logMessage(QString("UDP : Loading scene \"") + sceneName + "\"");
+    Vortex vortex = findVortex(sceneName, 0);
+    if (vortex.destName.isEmpty())
+    {
+        win.logMessage("Scene not in vortex DB. Aborting scene load.");
+        return;
+    }
+
+    Player &refresh = Player::findPlayer(win.udpPlayers, player.IP, player.port);
+    if (refresh.IP == "")
+    {
+        win.logMessage("Can't refresh player before loading scene, aborting");
+        return;
+    }
+    refresh.loading=true;
+    refresh.pony.pos = vortex.destPos;
+    refresh.pony.sceneName = sceneName;
+    QByteArray data(1,5);
+    data += stringToData(sceneName);
+    sendMessage(refresh,MsgUserReliableOrdered6,data); // Sends a 48
+}
+
+void sendLoadSceneRPC(Player &player, QString sceneName, UVector pos) // Loads a scene and send to the given pos
+{
+    win.logMessage(QString(QString("UDP : Loading scene \"") + sceneName + "\""));
+    Player &refresh = Player::findPlayer(win.udpPlayers, player.IP, player.port);
+    if (refresh.IP == "")
+    {
+        win.logMessage("Can't refresh player before loading scene, aborting");
+        return;
+    }
+    refresh.loading=true;
+    refresh.pony.pos = pos;
+    refresh.pony.sceneName = sceneName;
+    QByteArray data(1,5);
+    data += stringToData(sceneName);
+    sendMessage(refresh,MsgUserReliableOrdered6,data); // Sends a 48
 }

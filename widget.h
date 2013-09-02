@@ -17,6 +17,7 @@
 #include <windows.h>
 
 #include "character.h"
+#include "scene.h"
 
 #define PLAYERSPATH "data/players/"
 #define NETDATAPATH "data/netData/"
@@ -59,6 +60,7 @@ public:
     QUdpSocket *udpSocket;
     QList<Player> tcpPlayers; // Used by the TCP login server
     QList<Player> udpPlayers; // Used by the UDP game server
+    QList<Scene> scenes;
 
 private:
     Ui::Widget *ui;

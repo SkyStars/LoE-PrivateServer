@@ -4,36 +4,6 @@
 #include "character.h"
 #include "message.h"
 
-UVector::UVector()
-{
-    x=0;
-    y=0;
-    z=0;
-}
-
-UVector::UVector(float ux, float uy, float uz)
-{
-    x=ux;
-    y=uy;
-    z=uz;
-}
-
-UQuaternion::UQuaternion()
-{
-    x=0;
-    y=0;
-    z=0;
-    w=0;
-}
-
-UQuaternion::UQuaternion(float ux, float uy, float uz, float uw)
-{
-    x=ux;
-    y=uy;
-    z=uz;
-    w=uw;
-}
-
 SceneEntity::SceneEntity()
 {
     modelName = QString();
@@ -51,6 +21,7 @@ Pony::Pony() : SceneEntity()
 
 Player::Player()
 {
+    loading=false;
     connected=false;
     inGame=false;
     lastPingNumber=0;
@@ -68,6 +39,7 @@ void Player::reset()
     name.clear();
     connected=false;
     inGame=false;
+    loading=false;
     lastPingNumber=0;
     lastPingTime=timestampNow();
     port=0;

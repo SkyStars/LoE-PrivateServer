@@ -2,33 +2,7 @@
 #define CHARACTER_H
 
 #include <QString>
-
-class UVector
-{
-public:
-    UVector();
-    UVector(float ux, float uy, float uz);
-
-public:
-    float x;
-    float y;
-    float z;
-};
-typedef struct UVector UVector;
-
-class UQuaternion
-{
-public:
-    UQuaternion();
-    UQuaternion(float ux, float uy, float uz, float uw);
-
-public:
-    float x;
-    float y;
-    float z;
-    float w;
-};
-typedef struct UQuaternion UQuaternion;
+#include "dataType.h"
 
 class SceneEntity
 {
@@ -83,6 +57,7 @@ public:
     QByteArray *receivedDatas;
     Pony pony;
     bool inGame;
+    bool loading;
 };
 
 class WearableItem
