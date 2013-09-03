@@ -18,15 +18,17 @@ SOURCES += main.cpp\
 	utils.cpp \
 	pingTimeout.cpp \
 	character.cpp \
-    scene.cpp \
-    dataType.cpp
+	scene.cpp \
+	dataType.cpp \
+	sync.cpp
 
 HEADERS  += widget.h \
 	character.h \
 	message.h \
 	utils.h \
-    scene.h \
-    dataType.h
+	scene.h \
+	dataType.h \
+	sync.h
 
 FORMS    += widget.ui
 
@@ -34,3 +36,4 @@ RESOURCES += \
 	gameFiles.qrc
 
 QMAKE_CXXFLAGS += -O0
+QMAKE_LFLAGS_RELEASE += -static-libgcc -static-libstdc++ -lpthread

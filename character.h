@@ -1,6 +1,7 @@
 #ifndef CHARACTER_H
 #define CHARACTER_H
 
+#include <QObject>
 #include <QString>
 #include "dataType.h"
 
@@ -40,9 +41,10 @@ public:
     static QList<Player> loadPlayers();
     static Player& findPlayer(QList<Player>& players, QString uname);
     static Player& findPlayer(QList<Player>& players, QString uIP, quint16 uport);
+    static void removePlayer(QList<Player>& players, QString uIP, quint16 uport);
     static void disconnectPlayerCleanup(Player& player);
 
-public slots:
+public:
     void reset();
 
 public:

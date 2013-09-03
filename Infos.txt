@@ -1177,9 +1177,66 @@ LoadSpawn is the where you should land if you load this scene with the server co
 => You assign IDs and NetviewIDs starting from 1, using unique numbers.
 => Create a Level database, for each level it must give a list of entities (mobs/npc) with their positions
 => Create a NPC database, for each NPC it must give it's ponyData and possible interactions (unless they alreasy are in the client side)
-=> Understand the other RPC calls that are sent at startup and implement them (probably inventory, skills, ...)
 => Fix the bug that prevents to disconnect/logout from the ingame menu.
-=> Write a BoF PoC for the inventory vuln.
-=> Check the scene names case-insensitively
-=> Implement vortex auto-teleportation, test with the GemMines' vortex first 56 0200 1800 030001
 => Implement Rot
+
+=> Implement multiplayer
+==> In a new thread for each scene refresh each player, make a list of sync messages for each scene, then send the message to all players for each scene.
+==> Don't sync players if they are not inGame or if they are loading.
+==> In the new thread, loop as long as the server is running. If the syncing takes less than X ms then sleep for the remaining time.
+==> It's unreliable UDP messages so you don't care if they are lost. Just keep syncing.
+==> It might cause packet loss on the reliable channels if we spam sync messages tho. You might want to implement PNet reliability on the other channels.
+
+=> 01 sync message
+01 7c02 7800 7600 318909463d7e623b649b7f7d7f
+01 7e02 6800 5c00 4b89094652806b3c56825e
+
+=> Either use ranged singles like this, smaller but you need to know the map's x/y/z bounds or send full vectors
+=> Ranged singles with XYZ rotation sync
+31 89 09 46 Time (4)
+3d 7e X
+62 3b Y
+64 9b Z
+7f RX
+7d RY
+7f RZ
+
+=> Full vectors with XYZ rotation sync
+31 89 09 46 Time (4)
+3d 7e 54 21 X
+62 3b 3a b4 Y
+64 9b 67 d1 Z
+7f RX
+7d RY
+7f RZ
+
+=> Apparently the bounds are always the same
+public static readonly Bounds DefaultBounds = new Bounds(new Vector3(0f, 750f, 0f), new Vector3(5000f, 3500f, 5000f));
+public Bounds(Vector3 center, Vector3 size)
+{
+    this.m_Center = center;
+    this.m_Extents = (Vector3) (size * 0.5f);
+}
+public Vector3 min{get{return (this.center - this.extents);}}
+public Vector3 max{get{return (this.center + this.extents);}}
+=> So the static min and max values are
+min = (0,750,0) - (2500,1750,2500) = (-2500,-1000,-2500)
+max = (0,750,0) + (2500,1750,2500) = (2500,2500,2500)
+
+=> The X/Y/Z vector values are read/written using
+msg.ReadRangedSingle(this.roomBounds.min.x, this.roomBounds.max.x, 0x10)
+public float ReadRangedSingle(float min, float max, int numberOfBits)
+{
+    float num = max - min;
+    int num2 = (((int) 1) << numberOfBits) - 1;
+    float num3 = this.ReadUInt32(numberOfBits);
+    float num4 = num3 / ((float) num2);
+    return (min + (num4 * num));
+}
+public void WriteRangedSingle(float value, float min, float max, int numberOfBits)
+{
+    float num = max - min;
+    float num2 = (value - min) / num;
+    int num3 = (((int) 1) << numberOfBits) - 1;
+    this.Write((uint) (num3 * num2), numberOfBits);
+}

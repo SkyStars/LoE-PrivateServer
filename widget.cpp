@@ -382,7 +382,7 @@ void Widget::sendCmdLine()
     {
         if (str == "instantiate")
         {
-            logStatusMessage("UDP : Instantiating");
+            logMessage("UDP : Instantiating");
             sendNetviewInstantiate(cmdPeer);
             return;
         }

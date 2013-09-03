@@ -14,7 +14,16 @@ Scene::Scene(QString sceneName)
     vortexes = QList<Vortex>();
 }
 
-Vortex findVortex(QString sceneName, quint8 id)
+Scene* findScene(QString sceneName)
+{
+    for (int i=0; i<win.scenes.size(); i++)
+        if (win.scenes[i].name == sceneName)
+            return &win.scenes[i];
+
+    return new Scene("");
+}
+
+Vortex* findVortex(QString sceneName, quint8 id)
 {
     Scene scene(sceneName);
     for (int i=0; i<win.scenes.size(); i++)
@@ -23,7 +32,16 @@ Vortex findVortex(QString sceneName, quint8 id)
 
     for (int i=0; i<scene.vortexes.size(); i++)
         if (scene.vortexes[i].id == id)
-            return scene.vortexes[i];
+            return &scene.vortexes[i];
 
-    return Vortex();
+    return new Vortex();
+}
+
+Vortex* findVortex(Scene* scene, quint8 id)
+{
+    for (int i=0; i<scene->vortexes.size(); i++)
+        if (scene->vortexes[i].id == id)
+            return &(scene->vortexes[i]);
+
+    return new Vortex();
 }

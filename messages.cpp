@@ -231,7 +231,7 @@ void receiveMessage(Player& player)
                 // Create the new pony for this player
                 pony.ponyData = ponyData;
                 pony.sceneName = "Ponyville";
-                pony.pos = findVortex(pony.sceneName, 0).destPos;
+                pony.pos = findVortex(pony.sceneName, 0)->destPos;
                 ponies += pony;
             }
             else
@@ -259,14 +259,14 @@ void receiveMessage(Player& player)
             if (!player.loading)
             {
                 quint8 id = msg[5];
-                Vortex vortex = findVortex(player.pony.sceneName, id);
-                if (vortex.destName.isEmpty())
+                Vortex* vortex = findVortex(player.pony.sceneName, id);
+                if (vortex->destName.isEmpty())
                 {
                     win.logMessage("Can't find vortex "+QString().setNum(id)+" on map "+player.pony.sceneName);
                 }
                 else
                 {
-                    sendLoadSceneRPC(player, vortex.destName, vortex.destPos);
+                    sendLoadSceneRPC(player, vortex->destName, vortex->destPos);
                 }
             }
         }
@@ -641,8 +641,8 @@ void sendPonyData(Player& player)
 void sendLoadSceneRPC(Player &player, QString sceneName) // Loads a scene and send to the default spawn
 {
     win.logMessage(QString("UDP : Loading scene \"") + sceneName + "\"");
-    Vortex vortex = findVortex(sceneName, 0);
-    if (vortex.destName.isEmpty())
+    Vortex* vortex = findVortex(sceneName, 0);
+    if (vortex->destName.isEmpty())
     {
         win.logMessage("Scene not in vortex DB. Aborting scene load.");
         return;
@@ -655,7 +655,21 @@ void sendLoadSceneRPC(Player &player, QString sceneName) // Loads a scene and se
         return;
     }
     refresh.loading=true;
-    refresh.pony.pos = vortex.destPos;
+
+    Scene* scene = findScene(sceneName);
+    if (scene->name.isEmpty())
+    {
+        win.logMessage("Can't find the scene, aborting");
+        return;
+    }
+
+    if (refresh.pony.sceneName != sceneName)
+    {
+        Player::removePlayer(scene->players, refresh.IP, refresh.port);
+        scene->players << refresh;
+    }
+
+    refresh.pony.pos = vortex->destPos;
     refresh.pony.sceneName = sceneName;
     QByteArray data(1,5);
     data += stringToData(sceneName);
@@ -671,7 +685,22 @@ void sendLoadSceneRPC(Player &player, QString sceneName, UVector pos) // Loads a
         win.logMessage("Can't refresh player before loading scene, aborting");
         return;
     }
+
     refresh.loading=true;
+
+    Scene* scene = findScene(sceneName);
+    if (scene->name.isEmpty())
+    {
+        win.logMessage("Can't find the scene, aborting");
+        return;
+    }
+
+    if (refresh.pony.sceneName != sceneName)
+    {
+        Player::removePlayer(scene->players, refresh.IP, refresh.port);
+        scene->players << refresh;
+    }
+
     refresh.pony.pos = pos;
     refresh.pony.sceneName = sceneName;
     QByteArray data(1,5);

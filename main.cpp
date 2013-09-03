@@ -8,6 +8,10 @@ Widget win;
 
 int main(int argc, char *argv[])
 {
+    // Windows DLL hell fix
+    QCoreApplication::addLibraryPath(QCoreApplication::applicationDirPath());
+    a.addLibraryPath("platforms");
+
     win.show();
     win.startServer();
 

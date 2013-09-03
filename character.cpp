@@ -203,6 +203,15 @@ QList<Pony> Player::loadPonies(Player& player)
     return ponies;
 }
 
+void Player::removePlayer(QList<Player>& players, QString uIP, quint16 uport)
+{
+    for (int i=0; i<players.size(); i++)
+    {
+        if (players[i].IP == uIP && players[i].port == uport)
+            players.removeAt(i);
+    }
+}
+
 void Player::disconnectPlayerCleanup(Player& player)
 {
     // Save the pony
@@ -212,14 +221,11 @@ void Player::disconnectPlayerCleanup(Player& player)
             ponies[i] = player.pony;
     savePonies(player, ponies);
 
-    QString uIp = player.IP;
+    QString uIP = player.IP;
     quint16 uPort = player.port;
 
-    for (int i=0; i<win.udpPlayers.size(); i++)
-    {
-        if (win.udpPlayers[i].IP == uIp && win.udpPlayers[i].port == uPort)
-            win.udpPlayers.removeAt(i);
-    }
+    removePlayer(findScene(player.pony.sceneName)->players, uIP, uPort);
+    removePlayer(win.udpPlayers, uIP, uPort);
 }
 
 WearableItem::WearableItem()
