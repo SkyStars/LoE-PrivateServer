@@ -30,8 +30,10 @@ Player::Player()
     IP=QString();
     receivedDatas = new QByteArray;
     pony = Pony();
-    for (int i=0;i<32;i++)
+    for (int i=0;i<33;i++)
         udpSequenceNumbers[i]=0;
+    for (int i=0;i<33;i++)
+        udpRecvSequenceNumbers[i]=0;
 }
 
 void Player::reset()
@@ -46,8 +48,10 @@ void Player::reset()
     IP.clear();
     receivedDatas->clear();
     pony = Pony();
-    for (int i=0;i<32;i++)
+    for (int i=0;i<33;i++)
         udpSequenceNumbers[i]=0;
+    for (int i=0;i<33;i++)
+        udpRecvSequenceNumbers[i]=0;
 }
 
 bool Player::savePlayers(QList<Player> playersData)
@@ -129,9 +133,21 @@ Player& Player::findPlayer(QList<Player>& players, QString uIP, quint16 uport)
     return *emptyPlayer;
 }
 
+Player& Player::findPlayer(QList<Player>& players, quint16 netviewId)
+{
+    for (int i=0; i<players.size(); i++)
+    {
+        if (players[i].pony.netviewId == netviewId)
+            return players[i];
+    }
+
+    Player* emptyPlayer = new Player();
+    return *emptyPlayer;
+}
+
 void Player::savePonies(Player& player, QList<Pony> ponies)
 {
-    win.logMessage(QString("UDP : Saving ponies for player " + player.name));
+    win.logMessage(QString("UDP: Saving ponies for player " + player.name));
 
     QDir playerPath(QDir::currentPath());
     playerPath.cd("data");
@@ -203,12 +219,12 @@ QList<Pony> Player::loadPonies(Player& player)
     return ponies;
 }
 
-void Player::removePlayer(QList<Player>& players, QString uIP, quint16 uport)
+void Player::removePlayer(QList<Player>* players, QString uIP, quint16 uport)
 {
-    for (int i=0; i<players.size(); i++)
+    for (int i=0; i<players->size(); i++)
     {
-        if (players[i].IP == uIP && players[i].port == uport)
-            players.removeAt(i);
+        if ((*players)[i].IP == uIP && (*players)[i].port == uport)
+            players->removeAt(i);
     }
 }
 
@@ -224,8 +240,14 @@ void Player::disconnectPlayerCleanup(Player& player)
     QString uIP = player.IP;
     quint16 uPort = player.port;
 
-    removePlayer(findScene(player.pony.sceneName)->players, uIP, uPort);
-    removePlayer(win.udpPlayers, uIP, uPort);
+    Scene* scene = findScene(player.pony.sceneName);
+    if (scene->name.isEmpty())
+        win.logMessage("UDP: Can't find scene for player cleanup");
+
+    removePlayer(&(scene->players), uIP, uPort);
+    for (int i=0; i<scene->players.size(); i++)
+        sendNetviewRemove(scene->players[i], player.pony.netviewId);
+    removePlayer(&(win.udpPlayers), uIP, uPort);
 }
 
 WearableItem::WearableItem()

@@ -32,8 +32,8 @@ HEADERS  += widget.h \
 
 FORMS    += widget.ui
 
-RESOURCES += \
-	gameFiles.qrc
+#RESOURCES += gameFiles.qrc
 
-QMAKE_CXXFLAGS += -O0
+QMAKE_CXXFLAGS -= -O2
+QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_LFLAGS_RELEASE += -static-libgcc -static-libstdc++ -lpthread

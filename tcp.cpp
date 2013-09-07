@@ -4,7 +4,7 @@
 
 void Widget::tcpConnectClient()
 {
-    logMessage("TCP : New client connected");
+    logMessage("TCP: New client connected");
 
     QTcpSocket *newClient = tcpServer->nextPendingConnection();
     tcpClientsList << newClient;
@@ -20,7 +20,7 @@ void Widget::tcpDisconnectClient()
     if (socket == 0) // Si par hasard on n'a pas trouvé le client à l'origine du signal, on arrête la méthode
     return;
 
-    logMessage("TCP : Client disconnected");
+    logMessage("TCP: Client disconnected");
     disconnect(socket);
 
     tcpClientsList.removeOne(socket);
@@ -47,7 +47,7 @@ void Widget::tcpProcessPendingDatagrams()
 
         if (!tcpReceivedDatas->startsWith("POST") && !tcpReceivedDatas->startsWith("GET")) // Not HTTP, clear the buffer
         {
-            logMessage("TCP : Received non-HTTP request");
+            logMessage("TCP: Received non-HTTP request");
             tcpReceivedDatas->clear();
             socket->close();
             return;
@@ -63,7 +63,7 @@ void Widget::tcpProcessPendingDatagrams()
                 int length = lengthList[0].trimmed().toInt(&isNumeric);
                 if (!isNumeric) // We've got something but it's not a number
                 {
-                    logMessage("TCP : Content-Length must be a decimal number");
+                    logMessage("TCP: Content-Length must be a decimal number");
                     tcpReceivedDatas->clear();
                     socket->close();
                     return;
@@ -108,7 +108,7 @@ void Widget::tcpProcessData(QByteArray data, QTcpSocket* socket)
     {
         QString postData = QString(*tcpReceivedDatas);
         *tcpReceivedDatas = tcpReceivedDatas->right(postData.size()-postData.indexOf("version=")-8-4); // 4 : size of version number (ie:version=1344)
-        logMessage("TCP : Login request received :");
+        logMessage("TCP: Login request received :");
         QFile file(QString(NETDATAPATH)+"/loginHeader.bin");
         QFile fileServersList(SERVERSLISTFILEPATH);
         QFile fileBadPassword(QString(NETDATAPATH)+"/loginWrongPassword.bin");
@@ -135,30 +135,25 @@ void Widget::tcpProcessData(QByteArray data, QTcpSocket* socket)
             logMessage(QString("Username : ")+username);
             logMessage(QString("Passhash : ")+passhash);
 
-            // Add player to the players vector
-            // TODO: If there is already a player with that name, check the passhashes
+            // Add player to the players list
             Player player = Player::findPlayer(tcpPlayers, username);
             if (player.name != username) // Not found, create a new player
             {
                 // Check max registered number
                 if (tcpPlayers.size() >= maxRegistered)
                 {
-                    logMessage("TCP : Registration failed, too much players registered");
+                    logMessage("TCP: Registration failed, too much players registered");
                     socket->write(fileMaxRegistration.readAll());
                     ok = false;
                 }
                 else
                 {
-                    logMessage("TCP : Creating user in database");
+                    logMessage("TCP: Creating user in database");
                     Player newPlayer;
                     newPlayer.name = username;
                     newPlayer.passhash = passhash;
                     newPlayer.IP = socket->peerAddress().toString();
                     newPlayer.connected = false; // The connection checks are done by the game servers
-                    newPlayer.lastPingTime = timestampNow();
-                    newPlayer.lastPingNumber = 0;
-                    for (int i=0;i<32;i++)
-                        newPlayer.udpSequenceNumbers[i]=0;
 
                     tcpPlayers << newPlayer;
                     if (!Player::savePlayers(tcpPlayers))
@@ -169,14 +164,14 @@ void Widget::tcpProcessData(QByteArray data, QTcpSocket* socket)
             {
                 if (player.passhash != passhash) // Bad password
                 {
-                    logMessage("TCP : Login failed, wrong password");
+                    logMessage("TCP: Login failed, wrong password");
                     socket->write(fileBadPassword.readAll());
                     ok=false;
                 }
                 /*
                 else if (newPlayer.connected) // Already connected
                 {
-                    logMessage("TCP : Login failed, player already connected");
+                    logMessage("TCP: Login failed, player already connected");
                     socket->write(fileAlready.readAll());
                     ok=false;
                 }
@@ -191,7 +186,7 @@ void Widget::tcpProcessData(QByteArray data, QTcpSocket* socket)
                             n++;
                     if (n>=maxConnected)
                     {
-                        logMessage("TCP : Login failed, too much players connected");
+                        logMessage("TCP: Login failed, too much players connected");
                         socket->write(fileMaxConnected.readAll());
                         ok=false;
                     }
@@ -233,19 +228,19 @@ void Widget::tcpProcessData(QByteArray data, QTcpSocket* socket)
                 customData += serversList;
                 customData += data3;
 
-                logMessage("TCP : Login successful, sending servers list");
+                logMessage("TCP: Login successful, sending servers list");
                 socket->write(customData);
             }
         }
     }
     else if (data.contains("commfunction=removesession"))
     {
-        logMessage("TCP : Session closed by client");
+        logMessage("TCP: Session closed by client");
     }
     else // Unknown request, erase tcp buffer
     {
         // Display data
-        logMessage("TCP : Unknow request received : ");
+        logMessage("TCP: Unknow request received : ");
         logMessage(QString(data.data()));
     }
 

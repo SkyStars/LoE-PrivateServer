@@ -35,16 +35,16 @@ void Widget::udpProcessPendingDatagrams()
         {
             QString name = dataToString(datagram.right(datagram.size()-22));
             QString sesskey = dataToString(datagram.right(datagram.size()-datagram.lastIndexOf(name)-name.size()));
-            //logMessage(QString("UDP : Connect detected with name : ")+name);
-            //logMessage(QString("UDP : Connect detected with sesskey : ")+sesskey);
+            //logMessage(QString("UDP: Connect detected with name : ")+name);
+            //logMessage(QString("UDP: Connect detected with sesskey : ")+sesskey);
 
             if (QCryptographicHash::hash(QString(sesskey.right(40) + saltPassword).toLatin1(), QCryptographicHash::Md5).toHex() == sesskey.left(32))
             {
-                //logMessage("Sesskey accepted");
+                //logMessage("Sesskey token accepted");
 
                 // Create new player if needed, else just update player
                 Player& newPlayer = Player::findPlayer(udpPlayers, rAddr.toString(),rPort);
-                if (newPlayer.IP != rAddr.toString())
+                if (newPlayer.IP != rAddr.toString()) // IP:Port not found in player list
                 {
                     newPlayer.reset();
                     newPlayer.connected = true;
@@ -65,7 +65,7 @@ void Widget::udpProcessPendingDatagrams()
                     // If not add the player
                     udpPlayers << newPlayer;
                 }
-                else
+                else  // IP:Port found in player list
                 {
                     if (newPlayer.connected) // TODO: Error, player already connected
                     {
@@ -87,6 +87,7 @@ void Widget::udpProcessPendingDatagrams()
                     newPlayer.name = name;
                     newPlayer.IP = rAddr.toString();
                     newPlayer.port = rPort;
+                    newPlayer.connected = true;
                 }
             }
             else
@@ -111,7 +112,7 @@ void Widget::udpProcessPendingDatagrams()
         }
         else // You need to connect with TCP first
         {
-            logMessage("UDP : Request from unknow peer rejected : "+player.IP+":"+QString().setNum(rPort));
+            logMessage("UDP: Request from unknow peer rejected : "+player.IP+":"+QString().setNum(rPort));
             sendMessage(player,MsgDisconnect);
         }
     }

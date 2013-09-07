@@ -45,6 +45,7 @@ For example the packet 5600001800030001 will be noted 56 03 00 01
 54 XXXX Reliable messages, often RPC calls to network views. XXXX = NetviewId.
 54 XXXX 32 AA BBBBBBBBB Set status AA's value to BBBBBBBBB.
 54 XXXX 33 AA BBBBBBBBB Set status AA's max value to BBBBBBBBB.
+54 XXXX 04 ... Set inventory worn items
 54 XXXX 05 ... Set inventory
 54 XXXX C3 ... Set skills
 54 XXXX C8 ... Sends ponyData to instantiate player

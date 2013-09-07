@@ -3,15 +3,19 @@
 
 void Widget::checkPingTimeouts()
 {
+    //win.logMessage("CHECKING PING TIMEOUT :");
     for (int i=0;i<udpPlayers.size();i++)
     {
-        if (!udpPlayers[i].connected || !udpPlayers[i].port)
-            continue;
-        if (((int)timestampNow()-udpPlayers[i].lastPingTime) > pingTimeout)
+        //if (!udpPlayers[i].connected || !udpPlayers[i].port)
+        //    continue;
+        int time = (timestampNow()-udpPlayers[i].lastPingTime);
+        //win.logMessage(QString().setNum(time)+"s");
+        if (time > pingTimeout)
         {
-            logMessage("UDP : Ping timeout ("+QString().setNum(((int)timestampNow()-udpPlayers[i].lastPingTime))+"s), player "+udpPlayers[i].name);
+            logMessage("UDP: Ping timeout ("+QString().setNum(((int)timestampNow()-udpPlayers[i].lastPingTime))+"s), player "+udpPlayers[i].name);
             udpPlayers[i].connected = false;
             sendMessage(udpPlayers[i], MsgDisconnect, "Ping timeout");
+            Player::disconnectPlayerCleanup(udpPlayers[i]);
         }
     }
 }

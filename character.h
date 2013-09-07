@@ -41,7 +41,8 @@ public:
     static QList<Player> loadPlayers();
     static Player& findPlayer(QList<Player>& players, QString uname);
     static Player& findPlayer(QList<Player>& players, QString uIP, quint16 uport);
-    static void removePlayer(QList<Player>& players, QString uIP, quint16 uport);
+    static Player& findPlayer(QList<Player>& players, quint16 netviewId);
+    static void removePlayer(QList<Player> *players, QString uIP, quint16 uport);
     static void disconnectPlayerCleanup(Player& player);
 
 public:
@@ -55,7 +56,8 @@ public:
     float lastPingTime;
     int lastPingNumber;
     bool connected;
-    quint16 udpSequenceNumbers[32];
+    quint16 udpSequenceNumbers[33];
+    quint16 udpRecvSequenceNumbers[33];
     QByteArray *receivedDatas;
     Pony pony;
     bool inGame;

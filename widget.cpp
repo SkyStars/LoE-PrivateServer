@@ -21,7 +21,7 @@ Widget::~Widget()
 {
     tcpServer->close();
 
-    logMessage(QString("UDP : Disconnecting all players"));
+    logMessage(QString("UDP: Disconnecting all players"));
     for (;udpPlayers.size();)
     {
         sendMessage(udpPlayers[0], MsgDisconnect, "Connection closed by the server admin");
@@ -49,18 +49,24 @@ void Widget::logMessage(QString msg)
 
 void Widget::startServer()
 {
+    lastNetviewId=0;
+    lastId=0;
+
     /// Read config
     logStatusMessage("Reading config file ...");
     QSettings config(CONFIGFILEPATH, QSettings::IniFormat);;
     maxConnected = config.value("maxConnected",64).toInt();
     maxRegistered = config.value("maxRegistered",2048).toInt();
-    pingTimeout = config.value("pingTimeout", 15000).toInt();
+    pingTimeout = config.value("pingTimeout", 15).toInt();
     pingCheckInterval = config.value("pingCheckInterval", 5000).toInt();
     logInfos = config.value("logInfosMessages", false).toBool();
     saltPassword = config.value("saltPassword", "changeMe").toString();
     enableLoginServer = config.value("enableLoginServer", true).toBool();
     enableGameServer = config.value("enableGameServer", true).toBool();
+    enableMultiplayer = config.value("enableMultiplayer", true).toBool();
+    syncInterval = config.value("syncInterval",250).toInt();
 
+    /*
     if (config.value("updateGameFiles",false).toBool())
     {
         /// Copy server and game files
@@ -70,7 +76,7 @@ void Widget::startServer()
         gameDataDir.mkdir("Legends of Equestria"); gameDataDir.cd("Legends of Equestria");
         gameDataDir.mkdir("data");
         gameDataDir.mkdir("cutiemarks");
-        QString dataPath = QDir::homePath()+"/AppData/LocalLow/LoE/Legends of Equestria/";
+        //QString dataPath = QDir::homePath()+"/AppData/LocalLow/LoE/Legends of Equestria/";
         saveResourceToDataFolder("ChatFilter.txt");
         QStringList dataFiles = QDir(":/gameFiles/data").entryList();
         for (int i=0; i<dataFiles.size(); i++)
@@ -80,6 +86,7 @@ void Widget::startServer()
         for (int i=0; i<cutimarksFiles.size(); i++)
             saveResourceToDataFolder(QString("cutiemarks/")+cutimarksFiles[i]);
     }
+    */
 
     /// Init servers
     tcpClientsList.clear();
@@ -144,10 +151,10 @@ void Widget::startServer()
     // TCP server
     if (enableLoginServer)
     {
-        logStatusMessage("Startig TCP login server ...");
+        logStatusMessage("Starting TCP login server ...");
         if (!tcpServer->listen(QHostAddress::Any,TCPPORT))
         {
-            logStatusMessage("TCP : Unable to start server on port 80");
+            logStatusMessage("TCP: Unable to start server on port 80");
             stopServer();
             return;
         }
@@ -159,7 +166,7 @@ void Widget::startServer()
         logStatusMessage("Starting UDP game server ...");
         if (!udpSocket->bind(UDPPORT, QUdpSocket::ReuseAddressHint|QUdpSocket::ShareAddress))
         {
-            logStatusMessage("UDP : Unable to start server on port 80");
+            logStatusMessage("UDP: Unable to start server on port 80");
             stopServer();
             return;
         }
@@ -176,6 +183,9 @@ void Widget::startServer()
         // Start ping timeout timer
         pingTimer->start(pingCheckInterval);
     }
+
+    if (enableMultiplayer)
+        sync.startSync();
 
     logStatusMessage("Server started");
 
@@ -199,6 +209,8 @@ void Widget::stopServer()
 
     pingTimer->stop();
 
+    sync.stopSync();
+
     disconnect(ui->sendButton, SIGNAL(clicked()), this, SLOT(sendCmdLine()));
     disconnect(udpSocket, SIGNAL(readyRead()),this, SLOT(udpProcessPendingDatagrams()));
     disconnect(tcpServer, SIGNAL(newConnection()), this, SLOT(tcpConnectClient()));
@@ -221,7 +233,7 @@ void Widget::sendCmdLine()
         {
             cmdPeer = udpPlayers[0];
             QString peerName = cmdPeer.IP + " " + QString().setNum(cmdPeer.port);
-            logMessage(QString("UDP : Peer set to ").append(peerName));
+            logMessage(QString("UDP: Peer set to ").append(peerName));
             return;
         }
 
@@ -229,31 +241,49 @@ void Widget::sendCmdLine()
         QStringList args = str.split(' ');
         if (args.size() != 2)
         {
-            logMessage("UDP : setPeer takes two arguments");
+            logMessage("UDP: setPeer takes two arguments");
             return;
         }
         bool ok;
         quint16 port = args[1].toUInt(&ok);
         if (!ok)
         {
-            logMessage("UDP : setPeer takes a port as argument");
+            logMessage("UDP: setPeer takes a port as argument");
             return;
         }
 
         cmdPeer = Player::findPlayer(udpPlayers,args[0], port);
         if (cmdPeer.IP!="")
-            logMessage(QString("UDP : Peer set to ").append(str));
+            logMessage(QString("UDP: Peer set to ").append(str));
         else
-            logMessage(QString("UDP : Peer not found (").append(str).append(")"));
+            logMessage(QString("UDP: Peer not found (").append(str).append(")"));
         return;
     }
     else if (str.startsWith("listPeers"))
     {
-        logMessage("UDP : List of peers :");
-        for (int i=0;i<udpPlayers.size();i++)
+        if (str.size()<=10)
         {
-            logMessage(udpPlayers[i].IP + " port " + QString().setNum(udpPlayers[i].port));
+            for (int i=0; i<win.udpPlayers.size();i++)
+                win.logMessage(win.udpPlayers[i].IP
+                               +":"+QString().setNum(win.udpPlayers[i].port)
+                               +" "+QString().setNum((int)timestampNow()-win.udpPlayers[i].lastPingTime)+"s");
+            return;
         }
+        str = str.right(str.size()-10);
+        Scene* scene = findScene(str);
+        if (scene->name.isEmpty())
+            win.logMessage("Can't find scene");
+        else
+            for (int i=0; i<scene->players.size();i++)
+                win.logMessage(win.udpPlayers[i].IP
+                               +":"+QString().setNum(win.udpPlayers[i].port)
+                               +" "+QString().setNum((int)timestampNow()-win.udpPlayers[i].lastPingTime)+"s");
+        return;
+    }
+    else if (str.startsWith("sync"))
+    {
+        win.logMessage("UDP: Syncing manually");
+        sync.doSync();
         return;
     }
 
@@ -267,14 +297,14 @@ void Widget::sendCmdLine()
         cmdPeer = (Player&)Player::findPlayer(udpPlayers,cmdPeer.IP, cmdPeer.port);
         if (cmdPeer.IP=="")
         {
-            logMessage(QString("UDP : Peer not found"));
+            logMessage(QString("UDP: Peer not found"));
             return;
         }
     }
 
     if (str.startsWith("disconnect"))
     {
-        logMessage(QString("UDP : Disconnecting"));
+        logMessage(QString("UDP: Disconnecting"));
         sendMessage(cmdPeer,MsgDisconnect, "Connection closed by the server admin");
         Player::disconnectPlayerCleanup(cmdPeer); // Save game and remove the player
     }
@@ -295,7 +325,7 @@ void Widget::sendCmdLine()
     }
     else if (str.startsWith("sendUtils3"))
     {
-        logMessage("UDP : Sending Utils3 request");
+        logMessage("UDP: Sending Utils3 request");
         QByteArray data(1,3);
         sendMessage(cmdPeer,MsgUserReliableOrdered6,data);
     }
@@ -307,7 +337,7 @@ void Widget::sendCmdLine()
         unsigned id = str.toUInt(&ok);
         if (ok)
         {
-            logMessage("UDP : Sending setPlayerId request");
+            logMessage("UDP: Sending setPlayerId request");
             data[1]=id;
             data[2]=id >> 8;
             sendMessage(cmdPeer,MsgUserReliableOrdered6,data);
@@ -323,7 +353,7 @@ void Widget::sendCmdLine()
         unsigned id = str.toUInt(&ok);
         if (ok)
         {
-            logMessage("UDP : Sending remove request");
+            logMessage("UDP: Sending remove request");
             data[1]=id;
             data[2]=id >> 8;
             sendMessage(cmdPeer,MsgUserReliableOrdered6,data);
@@ -382,7 +412,7 @@ void Widget::sendCmdLine()
     {
         if (str == "instantiate")
         {
-            logMessage("UDP : Instantiating");
+            logMessage("UDP: Instantiating");
             sendNetviewInstantiate(cmdPeer);
             return;
         }
@@ -451,7 +481,7 @@ void Widget::sendCmdLine()
         data+=floatToData(z2);
         data+=floatToData(w2);
 
-        logMessage(QString("UDP : Instantiating ").append(args[0]));
+        logMessage(QString("UDP: Instantiating ").append(args[0]));
         sendMessage(cmdPeer,MsgUserReliableOrdered6,data);
     }
     else if (str.startsWith("beginDialog"))
@@ -490,7 +520,7 @@ void Widget::sendCmdLine()
         if (coords.size() != 3)
             return;
 
-        logMessage(QString("UDP : Moving character"));
+        logMessage(QString("UDP: Moving character"));
 
         QByteArray x = floatToData(coords[0].toFloat());
         QByteArray y = floatToData(coords[1].toFloat());

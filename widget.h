@@ -18,6 +18,7 @@
 
 #include "character.h"
 #include "scene.h"
+#include "sync.h"
 
 #define PLAYERSPATH "data/players/"
 #define NETDATAPATH "data/netData/"
@@ -61,6 +62,9 @@ public:
     QList<Player> tcpPlayers; // Used by the TCP login server
     QList<Player> udpPlayers; // Used by the UDP game server
     QList<Scene> scenes;
+    int lastNetviewId;
+    int lastId;
+    int syncInterval;
 
 private:
     Ui::Widget *ui;
@@ -69,6 +73,7 @@ private:
     QByteArray *tcpReceivedDatas;
     Player& cmdPeer;
     QTimer *pingTimer;
+    Sync sync;
 
     // Config
     int maxConnected; // Max numbre of players connected at the same time, can deny login
@@ -79,6 +84,7 @@ private:
     QString saltPassword; // Used to check passwords between login and game servers, must be the same on all the servers involved
     bool enableLoginServer; // Starts a login server
     bool enableGameServer; // Starts a game server
+    bool enableMultiplayer; // Sync players' position
 };
 
 // Global import from main
