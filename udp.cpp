@@ -4,10 +4,10 @@
 
 void Widget::udpProcessPendingDatagrams()
 {
-    QHostAddress rAddr;
-    quint16 rPort;
     while (udpSocket->hasPendingDatagrams())
     {
+        QHostAddress rAddr;
+        quint16 rPort;
         QByteArray datagram;
         qint64 dataRead = 0;
         int datagramSize = udpSocket->pendingDatagramSize();
@@ -92,7 +92,7 @@ void Widget::udpProcessPendingDatagrams()
             }
             else
             {
-                logMessage("Sesskey rejected");
+                logMessage("UDP: Sesskey rejected");
                 Player newPlayer;
                 newPlayer.IP = rAddr.toString();
                 newPlayer.port = rPort;

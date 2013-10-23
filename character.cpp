@@ -21,9 +21,8 @@ Pony::Pony() : SceneEntity()
 
 Player::Player()
 {
-    loading=false;
     connected=false;
-    inGame=false;
+    inGame=0;
     lastPingNumber=0;
     lastPingTime=timestampNow();
     port=0;
@@ -40,8 +39,7 @@ void Player::reset()
 {
     name.clear();
     connected=false;
-    inGame=false;
-    loading=false;
+    inGame=0;
     lastPingNumber=0;
     lastPingTime=timestampNow();
     port=0;
@@ -147,7 +145,7 @@ Player& Player::findPlayer(QList<Player>& players, quint16 netviewId)
 
 void Player::savePonies(Player& player, QList<Pony> ponies)
 {
-    win.logMessage(QString("UDP: Saving ponies for player " + player.name));
+    win.logMessage("UDP: Saving ponies for "+QString().setNum(player.pony.netviewId)+" ("+player.name+")");
 
     QDir playerPath(QDir::currentPath());
     playerPath.cd("data");

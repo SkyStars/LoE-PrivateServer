@@ -41,7 +41,7 @@ void receiveSync(Player& player, QByteArray data);
 void receiveMessage(Player& player);
 void sendMessage(Player& player, quint8 messageType, QByteArray data=QByteArray());
 void sendEntitiesList(Player& player);
-void sendEntitiesList2(Player& player, QByteArray msg);
+void sendPonySave(Player& player, QByteArray msg);
 void sendPonies(Player& player);
 void sendPonyData(Player& player);
 void sendPonyData(Player& src, Player& dst);

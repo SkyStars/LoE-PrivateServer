@@ -1,0 +1,15 @@
+# Game files
+gameFiles/
+LoE-Windows_Data/
+ManagedBackup/
+LoE_PrivateServer.exe
+
+# Build files
+release/
+debug/
+LoE_PrivateServer.exe
+PrivateServ/
+
+# User files
+*.user
+*.user.*

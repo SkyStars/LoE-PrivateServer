@@ -60,8 +60,7 @@ public:
     quint16 udpRecvSequenceNumbers[33];
     QByteArray *receivedDatas;
     Pony pony;
-    bool inGame;
-    bool loading;
+    quint8 inGame; // 0:Not in game, 1:Loading, 2:In game and loaded
 };
 
 class WearableItem

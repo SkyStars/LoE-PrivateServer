@@ -1381,9 +1381,212 @@ Syncing 2 to 1
 54 6200 4000 7300 3201cbea1442
 01 2000 7800 3700 c499c34663810e49e67c7f5d7f
 ...
-==> Server keeps sending the 54s even after the scene is fully loaded. It's not just 01s and it keeps going.
 
-=> When someone disconnects (in player cleanup) send a remove request to everyone in the scene.
-=> When someone joins a scene, send an instantiate request to everyone in the scene
+=> The base64 ponyData of ML KJ from the online OC creator is v/9b/beD4f+f/v3jAwAAjAFwAQAATDB++HNGnPhjlj45Ag==
 
-=> Often weird bug where ded players stays connected and in the peer list, but a real one timeouts
+=> Make a NPC Flying Manual in PonyVille wich provides ingame help.
+==> Text is "What do you want ?", options "Project page", "Server commands" and "UR A FAGET" that teleports you to Tartarus.
+
+=> Chat messages sent by a client
+Data received (UDP) (hex) : 
+46020058000f04000000054141414141
+Data received (UDP) (hex) : 
+46040058000f04000000054242424242
+Data received (UDP) (hex) : 
+46060058000f04000000054343434343
+Data received (UDP) (hex) : 
+46080048000f0400000003414243
+
+46 0800 4800 PNet Header (5)
+0f04 00 00 00 03 ??? + Text size 
+414243 Text
+
+=> Fix this fucking bug where having two clients can make the second one ping timeout client-side for no fucking reason.
+==> Is it because the two players are on the same account ?
+
+=> Log for a normal session (singleplayer)
+Reading config file ...
+Loaded 21 vortex in 9 scenes
+Starting TCP login server ...
+Starting UDP game server ...
+Loading players database ...
+Got 5 players in database
+Server started
+TCP: New client connected
+TCP: Session closed by client
+TCP: Received non-HTTP request
+TCP: Client disconnected
+TCP: New client connected
+TCP: Login request received :
+IP : 127.0.0.1
+Username : tux3
+Passhash : efc8ed71e9d9f3039f06d43133ded18579dd31d5
+TCP: Login successful, sending servers list
+TCP: Client disconnected
+UDP: Connecting ...
+UDP: Connected to client
+UDP: Starting game
+UDP: Set id request : 1/1
+UDP: Sending characters data to 1
+UDP: Saving ponies for 1 (tux3)
+UDP: Loading scene "RaritysBoutique" to 1
+UDP: Sending the 46 init messages
+UDP: Sending entities list to 1
+UDP: Send instantiate for 1 to 1
+UDP: Sending pony save to 1
+UDP: Sending the ponyData for/to 1
+
+==> Log of a session where the ping timeout bug happened.
+TCP: New client connected
+TCP: Login request received :
+IP : 127.0.0.1
+Username : tux3
+Passhash : efc8ed71e9d9f3039f06d43133ded18579dd31d5
+TCP: Login successful, sending servers list
+TCP: Client disconnected
+TCP: New client connected
+TCP: Login request received :
+IP : 127.0.0.1
+Username : tux3
+Passhash : efc8ed71e9d9f3039f06d43133ded18579dd31d5
+TCP: Login successful, sending servers list
+TCP: Client disconnected
+UDP: Connecting ...
+UDP: Connected to client
+UDP: Starting game
+UDP: Set id request : 4/4
+UDP: Connecting ...
+UDP: Connected to client
+UDP: Starting game
+UDP: Set id request : 5/5
+UDP: Sending characters data to 4
+UDP: Sending characters data to 5
+UDP: Saving ponies for 4 (tux3)
+UDP: Loading scene "RaritysBoutique" to 4
+UDP: Sending the 46 init messages
+UDP: Saving ponies for 5 (tux3)
+UDP: Loading scene "RaritysBoutique" to 5
+UDP: Send instantiate for 5 to 4
+UDP: Sending the 46 init messages
+UDP: Sending entities list to 4
+UDP: Send instantiate for 4 to 4
+UDP: Send instantiate for 5 to 4    ### Instantiated twice
+UDP: Sending pony save for 5 to 5
+UDP: Sending the ponyData for 5 to 4
+UDP: Sending pony save to 4
+UDP: Sending the ponyData for/to 4
+UDP: Sending entities list to 5
+UDP: Send instantiate for 4 to 5
+UDP: Send instantiate for 5 to 5
+UDP: Sending pony save for 5 to 5
+UDP: Sending the ponyData for 5 to 4 ### Sent twice
+UDP: Sending pony save to 5
+UDP: Sending the ponyData for/to 5
+UDP: Ping timeout (16.358s) for 5 (player tux3)
+UDP: Saving ponies for 5 (tux3)
+UDP: Removing netview 5 to 4
+==> Apparently thr bug appears when two players are connecting on the same map at the same time.
+==> The first player is not instantiated yet, but already added to the map
+==> When the second player enters, it instantiates itself to everyonee in the map, including the first player
+==> Then the first player finish loading and instantiates everyone in the map for himself, including the second player. The second player is instantiated twice here.
+===> Not instantiating ourselves to players that are not fully loaded when joining a map should fix this
+====> Change player.inGame to be an uint. 0 means not in game, 1 means loading a map, 2 means loaded.
+====> When joining a map, only instantiate to players who are fully loaded
+
+=> Bug : Using the load server command doesn't teleport to the correct position.
+
+=> ping timeout bug log :
+Reading config file ...
+Loaded 21 vortex in 9 scenes
+Starting TCP login server ...
+Starting UDP game server ...
+Loading players database ...
+Got 5 players in database
+Server started
+TCP: New client connected
+TCP: Session closed by client
+TCP: Received non-HTTP request
+TCP: Client disconnected
+TCP: New client connected
+TCP: Session closed by client
+TCP: Received non-HTTP request
+TCP: Client disconnected
+TCP: New client connected
+TCP: Login request received :
+IP : 127.0.0.1
+Username : tux3
+Passhash : efc8ed71e9d9f3039f06d43133ded18579dd31d5
+TCP: Login successful, sending servers list
+TCP: Client disconnected
+TCP: New client connected
+TCP: Login request received :
+IP : 127.0.0.1
+Username : tux3
+Passhash : efc8ed71e9d9f3039f06d43133ded18579dd31d5
+TCP: Login successful, sending servers list
+TCP: Client disconnected
+UDP: Connecting ...
+UDP: Connected to client
+UDP: Starting game
+UDP: Set id request : 1/1
+UDP: Ping received from 127.0.0.1:58973
+UDP: Last ping Dtime : 0.0619929
+UDP: Connecting ...
+UDP: Connected to client
+UDP: Starting game
+UDP: Set id request : 2/2
+UDP: Ping received from 127.0.0.1:58974
+UDP: Last ping Dtime : 0.0310065
+UDP: Sending characters data to 1
+UDP: Sending characters data to 2
+UDP: Ping received from 127.0.0.1:58973
+UDP: Last ping Dtime : 3.94701
+UDP: Ping received from 127.0.0.1:58974
+UDP: Last ping Dtime : 3.994
+UDP: Ping received from 127.0.0.1:58973
+UDP: Last ping Dtime : 3.99299
+UDP: Ping received from 127.0.0.1:58974
+UDP: Last ping Dtime : 3.993
+UDP: Saving ponies for 1 (tux3)
+UDP: Loading scene "RaritysBoutique" to 1
+UDP: Sending the 46 init messages
+UDP: Saving ponies for 2 (tux3)
+UDP: Loading scene "RaritysBoutique" to 2
+UDP: Sending the 46 init messages
+UDP: Sending entities list to 2
+UDP: Send instantiate for 1 to 2
+UDP: Send instantiate for 2 to 2
+UDP: Unknow data received : 4d000018000100044804001800080100
+UDP: Sending pony save to 2
+UDP: Sending the ponyData for/to 2
+UDP: Sending entities list to 1
+UDP: Send instantiate for 1 to 1
+UDP: Send instantiate for 2 to 1
+UDP: Ping received from 127.0.0.1:58973
+UDP: Last ping Dtime : 4.00901
+UDP: Sending pony save to 1
+UDP: Sending the ponyData for/to 1
+UDP: Unknow data received : 4d000018000200044806001800080200
+UDP: Unknow data received : 4d000018000200044806001800080200
+UDP: Sending pony save for 2 to 1
+UDP: Sending the ponyData for 2 to 1
+UDP: Ping received from 127.0.0.1:58973
+UDP: Last ping Dtime : 4.072
+UDP: Ping received from 127.0.0.1:58973
+UDP: Last ping Dtime : 3.916
+UDP: Ping received from 127.0.0.1:58973
+UDP: Last ping Dtime : 4.009
+UDP: Ping timeout (16.498s) for 2 (player tux3)
+UDP: Saving ponies for 2 (tux3)
+UDP: Removing netview 2 to 1
+UDP: Request from unknow peer rejected : :58974
+Can't refresh player before sendMessage, aborting
+UDP: Ping received from 127.0.0.1:58973
+UDP: Last ping Dtime : 4.00999
+
+=> Maybe this is the udp module grouping datagrams from the two peers, then calling receiveMessage for the first received wich is always the same
+==> If that's the problem, we should check boundaries of the messages in udp and as long as we have complete messages received for a peer, call sendMessage
+===> We're probably failing because we receive some messages in the wrong order !
+===> The client sends messages with seq X and X+1, but we receive X+1 first, and then X wich appears to be a duplicate. Client keeps resending it until we ack, but we never ack.
+====> Print a warning when we get a message in the wrong order (X+1 where the current seq is X-1), but don't change the seq.
+====> This way when we receive X+1 we keep a lastSeq of X-1, wich still allows us to receive X-1
