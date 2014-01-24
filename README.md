@@ -1,5 +1,5 @@
-LoE-PrivateServer
-=================
+Legends of Equestria Private Server
+===================================
 
 This is a Private Server, to play LoE even when the official servers are closed.
 
