@@ -2,6 +2,7 @@
 gameFiles/
 LoE-Windows_Data/
 ManagedBackup/
+disunity_v0.2.1/
 LoE_PrivateServer.exe
 
 # Build files
@@ -9,6 +10,7 @@ release/
 debug/
 LoE_PrivateServer.exe
 PrivateServ/
+*.o
 
 # User files
 *.user

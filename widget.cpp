@@ -4,6 +4,8 @@
 #include "message.h"
 #include "utils.h"
 
+#include <sys/time.h>
+
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget),
@@ -90,7 +92,9 @@ void Widget::startServer()
 
     /// Init servers
     tcpClientsList.clear();
-    startTimestamp=GetTickCount(); // GetTickCount:Nombre de millisecondes depuis le boot (up to 47+ days)
+    struct timespec tp;
+    clock_gettime(CLOCK_MONOTONIC, &tp);
+    startTimestamp=tp.tv_nsec;//GetTickCount(); // GetTickCount:Nombre de millisecondes depuis le boot (up to 47+ days)
 
     // Read vortex DB
     if (enableGameServer)
@@ -110,16 +114,20 @@ void Widget::startServer()
                 return;
             }
             QByteArray data = file.readAll();
+            data.replace('\r', "");
             QList<QByteArray> lines = data.split('\n');
             for (int j=0; j<lines.size(); j++)
             {
+                if (lines[j].size() == 0)
+                    continue;
                 nVortex++;
                 Vortex vortex;
                 bool ok1, ok2, ok3, ok4;
                 QList<QByteArray> elems = lines[j].split(' ');
                 if (elems.size() != 5)
                 {
-                    logStatusMessage("Vortex DB is corrupted. Incorrect line, file " + files[i]);
+                    logStatusMessage("Vortex DB is corrupted. Incorrect line ("
+                                    +QString().setNum(elems.size())+" elems), file " + files[i]);
                     corrupted=true;
                     break;
                 }

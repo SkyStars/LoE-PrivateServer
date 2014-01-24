@@ -7,7 +7,7 @@ void saveResourceToDataFolder(QString resRelPath)
     QString dataPath = QDir::homePath()+"/AppData/LocalLow/LoE/Legends of Equestria/";
     QFile::remove(dataPath+resRelPath);
     QFile::copy(QString(":/gameFiles/")+resRelPath, dataPath+resRelPath);
-    SetFileAttributesA(QString(dataPath+resRelPath).toStdString().c_str(),FILE_ATTRIBUTE_NORMAL);
+    //SetFileAttributesA(QString(dataPath+resRelPath).toStdString().c_str(),FILE_ATTRIBUTE_NORMAL);
 }
 
 QByteArray removeHTTPHeader(QByteArray data,QString header)

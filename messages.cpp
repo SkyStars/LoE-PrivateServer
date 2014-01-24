@@ -3,9 +3,13 @@
 #include "utils.h"
 #include "sync.h"
 
+#include <sys/time.h>
+
 float timestampNow()
 {
-    return (float)(((float)(GetTickCount() - win.startTimestamp))/(float)1000); // Nombre de seconde depuis le lancement du serveur (startTimestamp)
+    struct timespec tp;
+    clock_gettime(CLOCK_MONOTONIC, &tp);
+    return (float)(((float)(tp.tv_nsec - win.startTimestamp))/(float)1000); // Nombre de seconde depuis le lancement du serveur (startTimestamp)
 }
 
 QByteArray doubleToData(double num)
@@ -58,7 +62,7 @@ QByteArray stringToData(QString str)
     uint num1 = (uint)str.size();
     while (num1 >= 0x80)
     {
-        data[i] = (byte)(num1 | 0x80); i++;
+        data[i] = (unsigned char)(num1 | 0x80); i++;
         num1 = num1 >> 7;
     }
     data[i]=num1;
@@ -70,7 +74,7 @@ QByteArray stringToData(QString str)
 QString dataToString(QByteArray data)
 {
     // Variable UInt32
-    byte num3;
+    unsigned char num3;
     int num = 0;
     int num2 = 0;
     int i=0;
@@ -129,7 +133,7 @@ float dataToRangedSingle(float min, float max, int numberOfBits, QByteArray data
     }
 
     // NETBITWRITER READ UINT 32
-public static uint ReadUInt32(byte[] fromBuffer, int numberOfBits, int readBitOffset)
+public static uint ReadUInt32(unsigned char[] fromBuffer, int numberOfBits, int readBitOffset)
 {
     if (numberOfBits <= 8)
     {
@@ -203,26 +207,26 @@ QByteArray rangedSingleToData(float value, float min, float max, int numberOfBit
 
     if (numberOfBits <= 8)
     {
-        data += (byte)source;
+        data += (unsigned char)source;
         return data;
     }
-    data += (byte)source;
+    data += (unsigned char)source;
     numberOfBits -= 8;
     if (numberOfBits <= 8)
     {
-        data += (byte)source>>8;
+        data += (unsigned char)source>>8;
         return data;
     }
-    data += (byte)source>>8;
+    data += (unsigned char)source>>8;
     numberOfBits -= 8;
     if (numberOfBits <= 8)
     {
-        data += (byte)source>>16;
+        data += (unsigned char)source>>16;
         return data;
     }
-    data += (byte)source>>16;
+    data += (unsigned char)source>>16;
     numberOfBits -= 8;
-    data += (byte)source>>24;
+    data += (unsigned char)source>>24;
 
     return data;
 }

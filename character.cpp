@@ -179,7 +179,7 @@ QList<Pony> Player::loadPonies(Player& player)
         unsigned strlen;
         unsigned lensize=0;
         {
-            byte num3; int num=0, num2=0;
+            unsigned char num3; int num=0, num2=0;
             do {
                 num3 = data[i+lensize]; lensize++;
                 num |= (num3 & 0x7f) << num2;
@@ -200,7 +200,7 @@ QList<Pony> Player::loadPonies(Player& player)
         unsigned strlen2;
         unsigned lensize2=0;
         {
-            byte num3; int num=0, num2=0;
+            unsigned char num3; int num=0, num2=0;
             do {
                 num3 = data[i+lensize2]; lensize2++;
                 num |= (num3 & 0x7f) << num2;

@@ -69,8 +69,34 @@ void Widget::tcpProcessPendingDatagrams()
                     return;
                 }
 
-                // Get the HTML data/payload
+                // Detect and send data files if we need to
+                // TODO: Process and send all the requested data
                 QByteArray data = *tcpReceivedDatas;
+                int i1=0;
+                do
+                {
+                    i1 = data.indexOf("GET");
+                    if (i1 != -1)
+                    {
+                        int i2 = data.indexOf("HTTP")-1;
+                        QString path = data.mid(i1 + 4, i2-i1-4);
+                        logMessage("Received GET:"+path);
+                        QFile head(QString(NETDATAPATH)+"/test.bin");
+                        QFile res("gameFiles"+path);
+                        head.open(QIODevice::ReadOnly);
+                        res.open(QIODevice::ReadOnly);
+                        socket->write(head.readAll());
+                        socket->write(QString("Content-Length: "+QString().setNum(res.size())+"\n\n").toLatin1());
+                        socket->write(res.readAll());
+                        head.close();
+                        res.close();
+                        logMessage("Sent ("+QString().setNum(res.size())+" bytes)");
+                        data = removeHTTPHeader(data, "POST ");
+                        data = removeHTTPHeader(data, "GET ");
+                    }
+                } while (i1 != -1);
+
+                // Get the HTML data/payload
                 data = removeHTTPHeader(data, "POST ");
                 data = removeHTTPHeader(data, "GET ");
                 data = removeHTTPHeader(data, "User-Agent:");

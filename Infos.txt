@@ -351,22 +351,25 @@ public class StaticRPCIDs
 ==> Trouver la liste de tout les levels
 
 ===> Scenes, from "mainData" :
-MainMenu.unity
-Characters.unity
-PonyVille/PonyVille.unity
-SugarCubeCorner/SugarCubeCorner.unity
-Gem Mines/GemMines.unity
-Appaloosa/Appaloosa.unity
-SweetAppleAcres/SweetAppleAcres.unity
-Everfree/Everfree1.unity
-Everfree/Zecoras.unity
-Everfree/Everfree3.unity
-Tartarus/Tartarus.unity
-Canterlot/Canterlot.unity
-Minigames/minigameLoader.unity
-Minigames/PonyMuncher/PM-Lvl1.unity
-Ponyville Library/1stFloor/Ponyville Library 1st floor.unity
-Ponyville Library/2ndFloor/Ponyville Library 2nd floor.unity
+Assets/Scenes/MainMenu.unity
+Assets/Scenes/Characters.unity
+Assets/Scenes/PonyVille/PonyVille.unity
+Assets/Scenes/SugarCubeCorner/SugarCubeCorner.unity
+Assets/Scenes/Gem Mines/GemMines.unity
+Assets/Scenes/Appaloosa/Appaloosa.unity
+Assets/Scenes/SweetAppleAcres/SweetAppleAcres.unity
+Assets/Scenes/Everfree/Everfree1.unity
+Assets/Scenes/Everfree/Zecoras.unity
+Assets/Scenes/Everfree/Everfree3.unity
+Assets/Scenes/Tartarus/Tartarus.unity
+Assets/Scenes/Minigames/minigameLoader.unity
+Assets/Scenes/Minigames/PonyMuncher/PM-Lvl1.unity
+Assets/Scenes/Ponyville Library/1stFloor/Ponyville Library 1st floor.unity
+Assets/Scenes/Ponyville Library/2ndFloor/Ponyville Library 2nd floor.unity
+Assets/Scenes/Raritys Boutique/RaritysBoutique.unity
+Assets/Scenes/Canterlot/Canterlot.unity
+Assets/Scenes/Transitions/Cottage.unity
+Assets/Scenes/Cloudsdale/Cloudsdale.unity
 
 ====> OMIGOSH C'EST CA ! C'EST UNE SCENE !
 =========> AU DEMARRAGE CHARGER AUTOMATIQUEMENT "characters" POUR L'ECRAN DE SELECTION DE PERSONNAGE !!!
@@ -1590,3 +1593,9 @@ UDP: Last ping Dtime : 4.00999
 ===> The client sends messages with seq X and X+1, but we receive X+1 first, and then X wich appears to be a duplicate. Client keeps resending it until we ack, but we never ack.
 ====> Print a warning when we get a message in the wrong order (X+1 where the current seq is X-1), but don't change the seq.
 ====> This way when we receive X+1 we keep a lastSeq of X-1, wich still allows us to receive X-1
+
+=> Fix the vortex names in the new version of the game. They are in mainData
+=> The big maps just don't load. Record the official servers.
+=> Fix the precision clock that seems to be overflowing or something. We ping timeout with -XXXXs
+=> Fix the load command not using the default vortex position when teleporting
+==> Maybe we should send a sync message just before switching inGame to 2 (= just before accepting pos sync from the player)

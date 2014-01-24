@@ -14,7 +14,7 @@
 #include <QtConcurrent/QtConcurrentMap>
 #include <QCryptographicHash>
 
-#include <windows.h>
+//#include <windows.h>
 
 #include "character.h"
 #include "scene.h"
